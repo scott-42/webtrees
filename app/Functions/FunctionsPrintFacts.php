@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -171,19 +171,10 @@ class FunctionsPrintFacts {
 
 		if ($fact->getFactId() != 'histo' && $fact->canEdit()) {
 			?>
-			<a
-				href="#"
-				title="<?= I18N::translate('Edit') ?>"
-				onclick="return edit_record('<?= $parent->getXref() ?>', '<?= $fact->getFactId() ?>');"
-				><?= $label ?></a>
+			<?= $label ?>
 			<div class="editfacts">
 				<div class="editlink">
-					<a
-						href="#"
-						title="<?= I18N::translate('Edit') ?>"
-						class="editicon"
-						onclick="return edit_record('<?= $parent->getXref() ?>', '<?= $fact->getFactId() ?>');"
-						><span class="link_text"><?= I18N::translate('Edit') ?></span></a>
+					<a href="edit_interface.php?action=edit&amp;xref=<?= $parent->getXref() ?>&amp;fact_id=<?= $fact->getFactId() ?>&amp;ged=<?= $parent->getTree()->getNameHtml() ?>" title="<?= I18N::translate('Edit') ?>" class="editicon"><?= I18N::translate('Edit') ?></a>
 				</div>
 				<div class="copylink">
 					<a
@@ -790,7 +781,7 @@ class FunctionsPrintFacts {
 						echo GedcomTag::getLabel($factname, $parent);
 					}
 				} elseif ($can_edit) {
-					echo "<a onclick=\"return edit_record('$pid', '$fact_id');\" href=\"#\" title=\"", I18N::translate('Edit'), '">';
+					echo '<a href="edit_interface.php?action=edit&amp;xref=' . $parent->getXref() . '&amp;fact_id=' . $fact->getFactId() . '&amp;ged=' . $parent->getTree()->getNameHtml() . '" title="', I18N::translate('Edit'), '">';
 					if ($fact->getParent()->getTree()->getPreference('SHOW_FACT_ICONS')) {
 						if ($level == 1) {
 							echo '<i class="icon-source"></i> ';
@@ -802,7 +793,7 @@ class FunctionsPrintFacts {
 						// Inline sources can't be edited. Attempting to save one will convert it
 						// into a link, and delete it.
 						// e.g. "1 SOUR my source" becomes "1 SOUR @my source@" which does not exist.
-						echo "<div class=\"editlink\"><a class=\"editicon\" onclick=\"return edit_record('$pid', '$fact_id');\" href=\"#\" title=\"" . I18N::translate('Edit') . '"><span class="link_text">' . I18N::translate('Edit') . '</span></a></div>';
+						echo '<div class="editlink"><a class="editicon" href="edit_interface.php?action=edit&amp;xref=' . $parent->getXref() . '&amp;fact_id=' . $fact->getFactId() . '&amp;ged=' . $parent->getTree()->getNameHtml() . '" title="' . I18N::translate('Edit') . '"><span class="link_text">' . I18N::translate('Edit') . '</span></a></div>';
 						echo '<div class="copylink"><a class="copyicon" href="#" onclick="return copy_fact(\'', $pid, '\', \'', $fact_id, '\');" title="' . I18N::translate('Copy') . '"><span class="link_text">' . I18N::translate('Copy') . '</span></a></div>';
 					}
 					echo "<div class=\"deletelink\"><a class=\"deleteicon\" onclick=\"return delete_fact('" . I18N::translate('Are you sure you want to delete this fact?') . "', '$pid', '$fact_id');\" href=\"#\" title=\"" . I18N::translate('Delete') . '"><span class="link_text">' . I18N::translate('Delete') . '</span></a></div>';
@@ -1009,7 +1000,7 @@ class FunctionsPrintFacts {
 				echo '<tr><td class="descriptionbox ', $styleadd, ' width20">';
 			}
 			if ($can_edit) {
-				echo '<a onclick="return edit_record(\'', $pid, '\', \'', $fact_id, '\');" href="#" title="', I18N::translate('Edit'), '">';
+				echo '<a href="edit_interface.php?action=edit&amp;xref=' . $parent->getXref() . '&amp;fact_id=' . $fact->getFactId() . '&amp;ged=' . $parent->getTree()->getNameHtml() . '" title="', I18N::translate('Edit'), '">';
 				if ($level < 2) {
 					if ($fact->getParent()->getTree()->getPreference('SHOW_FACT_ICONS')) {
 						echo '<i class="icon-note"></i> ';
@@ -1021,7 +1012,7 @@ class FunctionsPrintFacts {
 					}
 					echo '</a>';
 					echo '<div class="editfacts">';
-					echo "<div class=\"editlink\"><a class=\"editicon\" onclick=\"return edit_record('$pid', '$fact_id');\" href=\"#\" title=\"" . I18N::translate('Edit') . '"><span class="link_text">' . I18N::translate('Edit') . '</span></a></div>';
+					echo '<div class="editlink"><a class="editicon" href="edit_interface.php?action=edit&amp;xref=' . $parent->getXref() . '&amp;fact_id=' . $fact->getFactId() . '&amp;ged=' . $parent->getTree()->getNameHtml() . '" title="' . I18N::translate('Edit') . '"><span class="link_text">' . I18N::translate('Edit') . '</span></a></div>';
 					echo '<div class="copylink"><a class="copyicon" href="#" onclick="return copy_fact(\'', $pid, '\', \'', $fact_id, '\');" title="' . I18N::translate('Copy') . '"><span class="link_text">' . I18N::translate('Copy') . '</span></a></div>';
 					echo "<div class=\"deletelink\"><a class=\"deleteicon\" onclick=\"return delete_fact('" . I18N::translate('Are you sure you want to delete this fact?') . "', '$pid', '$fact_id');\" href=\"#\" title=\"" . I18N::translate('Delete') . '"><span class="link_text">' . I18N::translate('Delete') . '</span></a></div>';
 					if ($note) {

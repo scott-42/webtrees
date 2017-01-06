@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -882,7 +882,7 @@ class Individual extends GedcomRecord {
 		case 0:
 			return null;
 		case 1:
-			return reset($families);
+			return $families[0];
 		default:
 			// If there is more than one FAMC record, choose the preferred parents:
 			// a) records with '2 _PRIMARY'
@@ -905,7 +905,7 @@ class Individual extends GedcomRecord {
 			}
 
 			// d) any record
-			return reset($families);
+			return $families[0];
 		}
 	}
 

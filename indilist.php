@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,19 +15,16 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree   $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
 use Fisharebest\Webtrees\Query\QueryName;
 
-define('WT_SCRIPT_NAME', 'indilist.php');
-require './includes/session.php';
+/**
+ * @global Tree   $WT_TREE
+ */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $controller = new PageController;
 
@@ -61,19 +58,19 @@ if ($show_all === 'yes') {
 		$alpha   = '';
 		$surname = '';
 		$legend  = I18N::translate('All');
-		$url     = WT_SCRIPT_NAME . '?show_all=yes&amp;ged=' . $WT_TREE->getNameUrl();
+		$url     = '?show_all=yes&amp;ged=' . $WT_TREE->getNameUrl();
 		$show    = 'indi';
 	} elseif ($falpha) {
 		$alpha   = '';
 		$surname = '';
 		$legend  = I18N::translate('All') . ', ' . Filter::escapeHtml($falpha) . '…';
-		$url     = WT_SCRIPT_NAME . '?show_all=yes&amp;ged=' . $WT_TREE->getNameUrl();
+		$url     = '?show_all=yes&amp;ged=' . $WT_TREE->getNameUrl();
 		$show    = 'indi';
 	} else {
 		$alpha   = '';
 		$surname = '';
 		$legend  = I18N::translate('All');
-		$url     = WT_SCRIPT_NAME . '?show_all=yes' . '&amp;ged=' . $WT_TREE->getNameUrl();
+		$url     = '?show_all=yes' . '&amp;ged=' . $WT_TREE->getNameUrl();
 		$show    = Filter::get('show', 'surn|indi', 'surn');
 	}
 } elseif ($surname) {
@@ -89,7 +86,7 @@ if ($show_all === 'yes') {
 			$legend = implode('/', array_keys($details));
 		}
 	}
-	$url = WT_SCRIPT_NAME . '?surname=' . rawurlencode($surname) . '&amp;ged=' . $WT_TREE->getNameUrl();
+	$url = '?surname=' . rawurlencode($surname) . '&amp;ged=' . $WT_TREE->getNameUrl();
 	switch ($falpha) {
 	case '':
 		break;
@@ -106,22 +103,22 @@ if ($show_all === 'yes') {
 } elseif ($alpha === '@') {
 	$show_all = 'no';
 	$legend   = I18N::translateContext('Unknown surname', '…');
-	$url      = WT_SCRIPT_NAME . '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
+	$url      = '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
 	$show     = 'indi'; // SURN list makes no sense here
 } elseif ($alpha === ',') {
 	$show_all = 'no';
 	$legend   = I18N::translate('None');
-	$url      = WT_SCRIPT_NAME . '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
+	$url      = '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
 	$show     = 'indi'; // SURN list makes no sense here
 } elseif ($alpha) {
 	$show_all = 'no';
 	$legend   = Filter::escapeHtml($alpha) . '…';
-	$url      = WT_SCRIPT_NAME . '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
+	$url      = '?alpha=' . rawurlencode($alpha) . '&amp;ged=' . $WT_TREE->getNameUrl();
 	$show     = Filter::get('show', 'surn|indi', 'surn');
 } else {
 	$show_all = 'no';
 	$legend   = '…';
-	$url      = WT_SCRIPT_NAME . '?ged=' . $WT_TREE->getNameUrl();
+	$url      = '?ged=' . $WT_TREE->getNameUrl();
 	$show     = 'none'; // Don't show lists until something is chosen
 }
 $legend = '<span dir="auto">' . $legend . '</span>';
@@ -130,7 +127,7 @@ $controller
 	->setPageTitle(I18N::translate('Individuals') . ' : ' . $legend)
 	->pageHeader();
 
-echo '<h2 class="center">', I18N::translate('Individuals'), '</h2>';
+echo '<h2 class="wt-page-title">', I18N::translate('Individuals'), '</h2>';
 
 // Print a selection list of initial letters
 $list = [];
@@ -148,9 +145,9 @@ foreach (QueryName::surnameAlpha($WT_TREE, $show_marnm === 'yes', false) as $let
 	}
 	if ($count) {
 		if ($letter == $alpha) {
-			$list[] = '<a href="' . WT_SCRIPT_NAME . '?alpha=' . rawurlencode($letter) . '&amp;ged=' . $WT_TREE->getNameUrl() . '" class="warning" title="' . I18N::number($count) . '">' . $html . '</a>';
+			$list[] = '<a href="?alpha=' . rawurlencode($letter) . '&amp;ged=' . $WT_TREE->getNameUrl() . '" class="warning" title="' . I18N::number($count) . '">' . $html . '</a>';
 		} else {
-			$list[] = '<a href="' . WT_SCRIPT_NAME . '?alpha=' . rawurlencode($letter) . '&amp;ged=' . $WT_TREE->getNameUrl() . '" title="' . I18N::number($count) . '">' . $html . '</a>';
+			$list[] = '<a href="?alpha=' . rawurlencode($letter) . '&amp;ged=' . $WT_TREE->getNameUrl() . '" title="' . I18N::number($count) . '">' . $html . '</a>';
 		}
 	} else {
 		$list[] = $html;
@@ -162,7 +159,7 @@ if (!Auth::isSearchEngine()) {
 	if ($show_all === 'yes') {
 		$list[] = '<span class="warning">' . I18N::translate('All') . '</span>';
 	} else {
-		$list[] = '<a href="' . WT_SCRIPT_NAME . '?show_all=yes' . '&amp;ged=' . $WT_TREE->getNameUrl() . '">' . I18N::translate('All') . '</a>';
+		$list[] = '<a href="?show_all=yes' . '&amp;ged=' . $WT_TREE->getNameUrl() . '">' . I18N::translate('All') . '</a>';
 	}
 }
 echo '<p class="center alpha_index">', implode(' | ', $list), '</p>';
@@ -252,7 +249,7 @@ if ($show === 'indi' || $show === 'surn') {
 					}
 				}
 				if ($show_all === 'no') {
-					echo '<h2 class="center">', I18N::translate('Individuals with surname %s', $legend), '</h2>';
+					echo '<h2 class="wt-page-title">', I18N::translate('Individuals with surname %s', $legend), '</h2>';
 				}
 				echo '<p class="center alpha_index">', implode(' | ', $list), '</p>';
 			}

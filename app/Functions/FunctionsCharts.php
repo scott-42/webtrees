@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -69,15 +69,10 @@ class FunctionsCharts {
 	 * @param string $label indi label (descendancy booklet)
 	 * @param string $parid parent ID (descendancy booklet)
 	 * @param string $gparid gd-parent ID (descendancy booklet)
-	 * @param int $show_full large or small box
 	 */
-	public static function printFamilyParents(Family $family, $sosa = 0, $label = '', $parid = '', $gparid = '', $show_full = 1) {
+	public static function printFamilyParents(Family $family, $sosa = 0, $label = '', $parid = '', $gparid = '') {
 
-		if ($show_full) {
-			$pbheight = Theme::theme()->parameter('chart-box-y') + 14;
-		} else {
-			$pbheight = Theme::theme()->parameter('compact-chart-box-y') + 14;
-		}
+		$pbheight = Theme::theme()->parameter('chart-box-y') + 14;
 
 		$husb = $family->getHusband();
 		if ($husb) {
@@ -118,7 +113,7 @@ class FunctionsCharts {
 		} else {
 			echo '<td>';
 		}
-		FunctionsPrint::printPedigreePerson($husb, $show_full);
+		FunctionsPrint::printPedigreePerson($husb);
 		echo '</td></tr></table>';
 		echo '</td>';
 		// husband’s parents
@@ -137,13 +132,13 @@ class FunctionsCharts {
 					self::printSosaNumber(trim(substr($label, 0, -3), '.') . '.');
 				}
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getHusband(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getHusband());
 				echo '</td></tr></table>';
 			} elseif ($hfam && !$hfam->getHusband()) {
 				// Empty box for grandfather
 				echo '<table border="0"><tr>';
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getHusband(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getHusband());
 				echo '</td></tr></table>';
 			}
 			echo '</td>';
@@ -165,13 +160,13 @@ class FunctionsCharts {
 					self::printSosaNumber(trim(substr($label, 0, -3), '.') . '.');
 				}
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getWife(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getWife());
 				echo '</td></tr></table>';
 			} elseif ($hfam && !$hfam->getWife()) {
 				// Empty box for grandmother
 				echo '<table border="0"><tr>';
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getWife(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getWife());
 				echo '</td></tr></table>';
 			}
 			echo '</td>';
@@ -209,7 +204,7 @@ class FunctionsCharts {
 		} else {
 			echo '<td>';
 		}
-		FunctionsPrint::printPedigreePerson($wife, $show_full);
+		FunctionsPrint::printPedigreePerson($wife);
 		echo '</td></tr></table>';
 		echo '</td>';
 		// wife’s parents
@@ -228,13 +223,13 @@ class FunctionsCharts {
 					self::printSosaNumber(trim(substr($label, 0, -3), '.') . '.');
 				}
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getHusband(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getHusband());
 				echo '</td></tr></table>';
 			} elseif ($hfam && !$hfam->getHusband()) {
 				// Empty box for grandfather
 				echo '<table border="0"><tr>';
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getHusband(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getHusband());
 				echo '</td></tr></table>';
 			}
 			echo '</td>';
@@ -256,13 +251,13 @@ class FunctionsCharts {
 					self::printSosaNumber(trim(substr($label, 0, -3), '.') . '.');
 				}
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getWife(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getWife());
 				echo '</td></tr></table>';
 			} elseif ($hfam && !$hfam->getWife()) {
 				// Empty box for grandmother
 				echo '<table border="0"><tr>';
 				echo '<td>';
-				FunctionsPrint::printPedigreePerson($hfam->getWife(), $show_full);
+				FunctionsPrint::printPedigreePerson($hfam->getWife());
 				echo '</td></tr></table>';
 			}
 			echo '</td>';
@@ -278,15 +273,10 @@ class FunctionsCharts {
 	 * @param int $sosa child sosa number
 	 * @param string $label indi label (descendancy booklet)
 	 * @param int $show_cousins display cousins on chart
-	 * @param int $show_full large or small box
 	 */
-	public static function printFamilyChildren(Family $family, $childid = '', $sosa = 0, $label = '', $show_cousins = 0, $show_full = 1) {
+	public static function printFamilyChildren(Family $family, $childid = '', $sosa = 0, $label = '', $show_cousins = 0) {
 
-		if ($show_full) {
-			$bheight = Theme::theme()->parameter('chart-box-y');
-		} else {
-			$bheight = Theme::theme()->parameter('compact-chart-box-y');
-		}
+		$bheight = Theme::theme()->parameter('chart-box-y');
 
 		$pbheight = $bheight + 14;
 
@@ -338,7 +328,7 @@ class FunctionsCharts {
 				} else {
 					echo '<td>';
 				}
-				FunctionsPrint::printPedigreePerson($child, $show_full);
+				FunctionsPrint::printPedigreePerson($child);
 				echo '</td>';
 				if ($sosa != 0) {
 					// loop for all families where current child is a spouse
@@ -393,11 +383,11 @@ class FunctionsCharts {
 						} else {
 							echo '">';
 						}
-						FunctionsPrint::printPedigreePerson($spouse, $show_full);
+						FunctionsPrint::printPedigreePerson($spouse);
 						echo '</td>';
 						// cousins
 						if ($show_cousins) {
-							self::printCousins($famid_child, $show_full);
+							self::printCousins($famid_child);
 						}
 					}
 				}
@@ -423,9 +413,8 @@ class FunctionsCharts {
 	 * @param string $parid parent ID (descendancy booklet)
 	 * @param string $gparid gd-parent ID (descendancy booklet)
 	 * @param int $show_cousins display cousins on chart
-	 * @param int $show_full large or small box
 	 */
-	public static function printSosaFamily($famid, $childid, $sosa, $label = '', $parid = '', $gparid = '', $show_cousins = 0, $show_full = 1) {
+	public static function printSosaFamily($famid, $childid, $sosa, $label = '', $parid = '', $gparid = '', $show_cousins = 0) {
 		global $WT_TREE;
 
 		echo '<hr>';
@@ -433,10 +422,10 @@ class FunctionsCharts {
 		if (!empty($famid)) {
 			echo '<a name="', $famid, '"></a>';
 		}
-		self::printFamilyParents(Family::getInstance($famid, $WT_TREE), $sosa, $label, $parid, $gparid, $show_full);
+		self::printFamilyParents(Family::getInstance($famid, $WT_TREE), $sosa, $label, $parid, $gparid);
 		echo '<br>';
 		echo '<table><tr><td>';
-		self::printFamilyChildren(Family::getInstance($famid, $WT_TREE), $childid, $sosa, $label, $show_cousins, $show_full);
+		self::printFamilyChildren(Family::getInstance($famid, $WT_TREE), $childid, $sosa, $label, $show_cousins);
 		echo '</td></tr></table>';
 		echo '<br>';
 	}
@@ -496,21 +485,14 @@ class FunctionsCharts {
 	 * print cousins list
 	 *
 	 * @param string $famid family ID
-	 * @param int $show_full large or small box
 	 */
-	public static function printCousins($famid, $show_full = 1) {
+	public static function printCousins($famid) {
 		global $WT_TREE;
 
-		if ($show_full) {
-			$bheight = Theme::theme()->parameter('chart-box-y');
-		} else {
-			$bheight = Theme::theme()->parameter('compact-chart-box-y');
-		}
-
+		$bheight   = Theme::theme()->parameter('chart-box-y');
 		$family    = Family::getInstance($famid, $WT_TREE);
 		$fchildren = $family->getChildren();
-
-		$kids = count($fchildren);
+		$kids      = count($fchildren);
 
 		echo '<td>';
 		if ($kids) {
@@ -532,7 +514,7 @@ class FunctionsCharts {
 					echo ' style="padding-left: 2px;"';
 				}
 				echo ' src="', Theme::theme()->parameter('image-hline'), '"></td><td>';
-				FunctionsPrint::printPedigreePerson($fchil, $show_full);
+				FunctionsPrint::printPedigreePerson($fchil);
 				echo '</td></tr>';
 				if ($i < $ctkids) {
 					echo '<tr>';

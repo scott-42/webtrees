@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,12 +15,10 @@
  */
 namespace Fisharebest\Webtrees;
 
-use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use PDOException;
 
 error_reporting(E_ALL);
 
-define('WT_SCRIPT_NAME', 'setup.php');
 define('WT_CONFIG_FILE', 'config.ini.php');
 
 require 'vendor/autoload.php';
@@ -31,7 +29,6 @@ require 'vendor/autoload.php';
 define('WT_WEBTREES', 'webtrees');
 define('WT_BASE_URL', '');
 define('WT_DATA_DIR', 'data/');
-define('WT_DEBUG_SQL', false);
 define('WT_REQUIRED_MYSQL_VERSION', '5.0.13');
 define('WT_REQUIRED_PHP_VERSION', '5.6');
 define('WT_MODULES_DIR', 'modules_v3/');
@@ -71,7 +68,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ?>
 <!DOCTYPE html>
-<html <?php echo I18N::htmlAttributes(); ?>>
+<html <?= I18N::htmlAttributes() ?>>
 <head>
 	<meta charset="UTF-8">
 	<title>
@@ -90,11 +87,11 @@ header('Content-Type: text/html; charset=UTF-8');
 	</head>
 	<body>
 		<h1>
-			<?php echo I18N::translate('Setup wizard for webtrees'); ?>
+			<?= I18N::translate('Setup wizard for webtrees') ?>
 		</h1>
 <?php
 
-echo '<form name="config" action="', WT_SCRIPT_NAME, '" method="post" onsubmit="this.btncontinue.disabled=\'disabled\';">';
+echo '<form name="config" method="post" onsubmit="this.btncontinue.disabled=\'disabled\';">';
 echo '<input type="hidden" name="lang" value="', WT_LOCALE, '">';
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +106,7 @@ if (!isset($_POST['lang'])) {
 
 	echo
 		'<p>', I18N::translate('Language'), ' ',
-		FunctionsEdit::selectEditControl('change_lang', $installed_languages, null, WT_LOCALE, 'onchange="window.location=\'' . WT_SCRIPT_NAME . '?lang=\'+this.value;">'),
+	Bootstrap4::select($installed_languages, WT_LOCALE, ['onchange' => 'window.location="' . WT_SCRIPT_NAME . '?lang="+this.value;']),
 		'</p>',
 		'<h2>', I18N::translate('Checking server configuration'), '</h2>';
 	$warnings = false;

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,18 +15,13 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
 
-define('WT_SCRIPT_NAME', 'placelist.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
+
+/** @global Tree $WT_TREE */
+global $WT_TREE;
 
 $controller = new PageController;
 
@@ -38,7 +33,7 @@ $level = count($parent);
 
 if ($display == 'hierarchy') {
 	if ($level) {
-		$controller->setPageTitle(I18N::translate('Place hierarchy') . ' - <span dir="auto">' . Filter::escapeHtml(end($parent)) . '</span>');
+		$controller->setPageTitle(I18N::translate('Place hierarchy') . ' - <span dir="auto">' . Filter::escapeHtml($parent[$level - 1]) . '</span>');
 	} else {
 		$controller->setPageTitle(I18N::translate('Place hierarchy'));
 	}
@@ -108,7 +103,7 @@ case 'hierarchy':
 	}
 	echo '</h2>';
 
-	if ($gm_module && $gm_module->getSetting('GM_PLACE_HIERARCHY')) {
+	if ($gm_module && $gm_module->getPreference('GM_PLACE_HIERARCHY')) {
 		$linklevels  = '';
 		$place_names = [];
 		for ($j = 0; $j < $level; $j++) {
@@ -144,7 +139,7 @@ case 'hierarchy':
 			$html .= '<td class="list_value"><ul>';
 			foreach ($column as $item) {
 				$html .= '<li><a href="' . $item->getURL() . '" class="list_item">' . $item->getPlaceName() . '</a></li>';
-				if ($gm_module && $gm_module->getSetting('GM_PLACE_HIERARCHY')) {
+				if ($gm_module && $gm_module->getPreference('GM_PLACE_HIERARCHY')) {
 					list($tmp)     = explode(', ', $item->getGedcomName(), 2);
 					$place_names[] = $tmp;
 				}
@@ -188,9 +183,9 @@ case 'hierarchy':
 
 		//-- display results
 		$controller
-			->addInlineJavascript('jQuery("#places-tabs").tabs();')
-			->addInlineJavascript('jQuery("#places-tabs").css("visibility", "visible");')
-			->addInlineJavascript('jQuery(".loading-image").css("display", "none");');
+			->addInlineJavascript('$("#places-tabs").tabs();')
+			->addInlineJavascript('$("#places-tabs").css("visibility", "visible");')
+			->addInlineJavascript('$(".loading-image").css("display", "none");');
 
 		echo '<div class="loading-image"></div>';
 		echo '<div id="places-tabs"><ul>';
@@ -211,7 +206,7 @@ case 'hierarchy':
 	}
 	echo '<h4><a href="placelist.php?display=list">', I18N::translate('Show all places in a list'), '</a></h4>';
 
-	if ($gm_module && $gm_module->getSetting('GM_PLACE_HIERARCHY')) {
+	if ($gm_module && $gm_module->getPreference('GM_PLACE_HIERARCHY')) {
 		$gm_module->mapScripts($numfound, $level, $parent, $linklevels, $place_names);
 	}
 	break;

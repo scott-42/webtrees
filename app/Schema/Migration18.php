@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,7 +35,7 @@ class Migration18 implements MigrationInterface {
 				" DROP       KEY ix3," .
 				" DROP       KEY ix4," .
 				" DROP       p_level," . // Not needed - implicit from p_parent
-				" ADD        KEY ix1 (p_file, p_place)," . // autocomplete.php, find.php
+				" ADD        KEY ix1 (p_file, p_place)," . // autocomplete.php
 				" ADD UNIQUE KEY ux1 (p_parent_id, p_file, p_place)" // placelist.php
 			);
 		} catch (PDOException $ex) {

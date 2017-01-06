@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -114,8 +114,8 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 					<i class="icon-cfamily"></i>
 				</td>
 				<td>
-					<span class="subheaders"> <?php echo $label; ?></span>
-					<a class="noprint" href="<?php echo $family->getHtmlUrl(); ?>"> - <?php echo I18N::translate('View this family'); ?></a>
+					<span class="subheaders"> <?= $label ?></span>
+					<a href="<?= $family->getHtmlUrl() ?>"> - <?= I18N::translate('View this family') ?></a>
 				</td>
 			</tr>
 		</table>
@@ -137,11 +137,11 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 				}
 				?>
 					<tr>
-					<td class="<?php echo $class; ?>">
-						<?php echo Functions::getCloseRelationshipName($controller->record, $person); ?>
+					<td class="<?= $class ?>">
+						<?= Functions::getCloseRelationshipName($controller->record, $person) ?>
 					</td>
-					<td class="<?php echo $controller->getPersonStyle($person); ?>">
-						<?php echo Theme::theme()->individualBoxLarge($person); ?>
+					<td class="<?= $controller->getPersonStyle($person) ?>">
+						<?= Theme::theme()->individualBoxLarge($person) ?>
 					</td>
 					</tr>
 				<?php
@@ -151,7 +151,7 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 			?>
 			<tr>
 				<td class="facts_label"></td>
-				<td class="facts_value"><a href="#" onclick="return add_spouse_to_family('<?php echo $family->getXref(); ?>', 'HUSB');"><?php echo I18N::translate('Add a husband to this family'); ?></a></td>
+				<td class="facts_value"><a href="#" onclick="return add_spouse_to_family('<?= $family->getXref() ?>', 'HUSB');"><?= I18N::translate('Add a husband to this family') ?></a></td>
 			</tr>
 			<?php
 		}
@@ -171,11 +171,11 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 				}
 				?>
 				<tr>
-					<td class="<?php echo $class; ?>">
-						<?php echo Functions::getCloseRelationshipName($controller->record, $person); ?>
+					<td class="<?= $class ?>">
+						<?= Functions::getCloseRelationshipName($controller->record, $person) ?>
 					</td>
-					<td class="<?php echo $controller->getPersonStyle($person); ?>">
-						<?php echo Theme::theme()->individualBoxLarge($person); ?>
+					<td class="<?= $controller->getPersonStyle($person) ?>">
+						<?= Theme::theme()->individualBoxLarge($person) ?>
 					</td>
 				</tr>
 				<?php
@@ -185,7 +185,7 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 			?>
 			<tr>
 				<td class="facts_label"></td>
-				<td class="facts_value"><a href="#" onclick="return add_spouse_to_family('<?php echo $family->getXref(); ?>', 'WIFE');"><?php echo I18N::translate('Add a wife to this family'); ?></a></td>
+				<td class="facts_value"><a href="#" onclick="return add_spouse_to_family('<?= $family->getXref() ?>', 'WIFE');"><?= I18N::translate('Add a wife to this family') ?></a></td>
 			</tr>
 			<?php
 		}
@@ -206,8 +206,8 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 			<tr>
 				<td class="facts_label">
 				</td>
-				<td class="facts_value<?php echo $class; ?>">
-					<?php echo GedcomTag::getLabelValue($fact->getTag(), $fact->getDate()->display() . ' — ' . $fact->getPlace()->getFullName()); ?>
+				<td class="facts_value<?= $class ?>">
+					<?= GedcomTag::getLabelValue($fact->getTag(), $fact->getDate()->display() . ' — ' . $fact->getPlace()->getFullName()) ?>
 				</td>
 			</tr>
 			<?php
@@ -222,8 +222,8 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 				<td class="facts_label">
 				</td>
 				<td class="facts_value">
-					<a href="#" onclick="return add_new_record('<?php echo $family->getXref(); ?>', 'MARR');">
-						<?php echo I18N::translate('Add marriage details'); ?>
+					<a href="#" onclick="return add_new_record('<?= $family->getXref() ?>', 'MARR');">
+						<?= I18N::translate('Add marriage details') ?>
 					</a>
 				</td>
 			</tr>
@@ -253,12 +253,12 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 				}
 				?>
 				<tr>
-					<td class="<?php echo $class; ?>">
-						<?php echo self::ageDifference($prev, $next, $child_number); ?>
-						<?php echo Functions::getCloseRelationshipName($controller->record, $person); ?>
+					<td class="<?= $class ?>">
+						<?= self::ageDifference($prev, $next, $child_number) ?>
+						<?= Functions::getCloseRelationshipName($controller->record, $person) ?>
 					</td>
-					<td class="<?php echo $controller->getPersonStyle($person); ?>">
-						<?php echo Theme::theme()->individualBoxLarge($person); ?>
+					<td class="<?= $controller->getPersonStyle($person) ?>">
+						<?= Theme::theme()->individualBoxLarge($person) ?>
 					</td>
 				</tr>
 				<?php
@@ -273,17 +273,17 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 				$add_child_text = I18N::translate('Add a brother or sister');
 			}
 			?>
-			<tr class="noprint">
+			<tr>
 				<td class="facts_label">
 					<?php if (count($family->getChildren()) > 1) { ?>
-					<a href="#" onclick="reorder_children('<?php echo $family->getXref(); ?>');tabswitch(5);"><i class="icon-media-shuffle"></i> <?php echo I18N::translate('Re-order children'); ?></a>
+					<a href="#" onclick="reorder_children('<?= $family->getXref() ?>');tabswitch(5);"><i class="icon-media-shuffle"></i> <?= I18N::translate('Re-order children') ?></a>
 					<?php } ?>
 				</td>
 				<td class="facts_value">
-					<a href="#" onclick="return add_child_to_family('<?php echo $family->getXref(); ?>');"><?php echo $add_child_text; ?></a>
+					<a href="#" onclick="return add_child_to_family('<?= $family->getXref() ?>');"><?= $add_child_text ?></a>
 					<span style='white-space:nowrap;'>
-						<a href="#" class="icon-sex_m_15x15" onclick="return add_child_to_family('<?php echo $family->getXref(); ?>','M');"></a>
-						<a href="#" class="icon-sex_f_15x15" onclick="return add_child_to_family('<?php echo $family->getXref(); ?>','F');"></a>
+						<a href="#" class="icon-sex_m_15x15" onclick="return add_child_to_family('<?= $family->getXref() ?>','M');"></a>
+						<a href="#" class="icon-sex_f_15x15" onclick="return add_child_to_family('<?= $family->getXref() ?>','F');"></a>
 					</span>
 				</td>
 			</tr>
@@ -295,22 +295,16 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 
 	/** {@inheritdoc} */
 	public function getTabContent() {
-		global $show_full, $controller;
-
-		if (isset($show_full)) {
-			$saved_show_full = $show_full;
-		}
-		// We always want to see full details here
-		$show_full = 1;
+		global $controller;
 
 		ob_start();
 		?>
 		<table class="facts_table">
-			<tr class="noprint">
+			<tr>
 				<td class="descriptionbox rela">
 					<label>
 						<input id="show-date-differences" type="checkbox" checked>
-						<?php echo I18N::translate('Date differences'); ?>
+						<?= I18N::translate('Date differences') ?>
 					</label>
 				</td>
 			</tr>
@@ -321,10 +315,10 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 			?>
 			<table class="facts_table">
 				<tr>
-					<td class="facts_value"><a href="#" onclick="return add_parent_to_individual('<?php echo $controller->record->getXref(); ?>', 'M');"><?php echo I18N::translate('Add a father'); ?></td>
+					<td class="facts_value"><a href="#" onclick="return add_parent_to_individual('<?= $controller->record->getXref() ?>', 'M');"><?= I18N::translate('Add a father') ?></td>
 				</tr>
 				<tr>
-					<td class="facts_value"><a href="#" onclick="return add_parent_to_individual('<?php echo $controller->record->getXref(); ?>', 'F');"><?php echo I18N::translate('Add a mother'); ?></a></td>
+					<td class="facts_value"><a href="#" onclick="return add_parent_to_individual('<?= $controller->record->getXref() ?>', 'F');"><?= I18N::translate('Add a mother') ?></a></td>
 				</tr>
 			</table>
 			<?php
@@ -353,61 +347,56 @@ class RelativesTabModule extends AbstractModule implements ModuleTabInterface {
 
 		if ($controller->record->canEdit()) {
 		?>
-		<br><table class="facts_table noprint">
+		<br><table class="facts_table">
 		<?php
 			if (count($families) > 1) { ?>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return reorder_families('<?php echo $controller->record->getXref(); ?>');"><?php echo I18N::translate('Re-order families'); ?></a>
+				<a href="#" onclick="return reorder_families('<?= $controller->record->getXref() ?>');"><?= I18N::translate('Re-order families') ?></a>
 				</td>
 			</tr>
 		<?php } ?>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return add_famc('<?php echo $controller->record->getXref(); ?>');"><?php echo I18N::translate('Link this individual to an existing family as a child'); ?></a>
+				<a href="edit_interface.php?action=addfamlink&xref=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameHtml() ?>"><?= I18N::translate('Link this individual to an existing family as a child') ?></a>
 				</td>
 			</tr>
 			<?php if ($controller->record->getSex() != 'F') { ?>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return add_spouse_to_individual('<?php echo $controller->record->getXref(); ?>','WIFE');"><?php echo I18N::translate('Add a wife'); ?></a>
+				<a href="edit_interface.php?action=add_spouse_to_individual&amp;sex=F&amp;xref=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameHtml() ?>"><?= I18N::translate('Add a wife') ?></a>
 				</td>
 			</tr>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return linkspouse('<?php echo $controller->record->getXref(); ?>','WIFE');"><?php echo I18N::translate('Add a wife using an existing individual'); ?></a>
+				<a href="edit_interface.php?action=linkspouse&amp;famtag=WIFE&amp;xref=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameHtml() ?>"><?= I18N::translate('Add a wife using an existing individual') ?></a>
 				</td>
 			</tr>
 			<?php }
 			if ($controller->record->getSex() != 'M') { ?>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return add_spouse_to_individual('<?php echo $controller->record->getXref(); ?>','HUSB');"><?php echo I18N::translate('Add a husband'); ?></a>
+				<a href="edit_interface.php?action=add_spouse_to_individual&amp;sex=M&amp;xref=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameHtml() ?>"><?= I18N::translate('Add a husband') ?></a>
 				</td>
 			</tr>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return linkspouse('<?php echo $controller->record->getXref(); ?>','HUSB');"><?php echo I18N::translate('Add a husband using an existing individual'); ?></a>
+				<a href="edit_interface.php?action=linkspouse&amp;famtag=HUSB&amp;xref=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameHtml() ?>"><?= I18N::translate('Add a husband using an existing individual') ?></a>
 				</td>
 			</tr>
 			<?php } ?>
 			<tr>
 				<td class="facts_value">
-				<a href="#" onclick="return add_child_to_individual('<?php echo $controller->record->getXref(); ?>','U');"><?php echo I18N::translate('Add a child to create a one-parent family'); ?></a>
+				<a href="#" onclick="return add_child_to_individual('<?= $controller->record->getXref() ?>','U');"><?= I18N::translate('Add a child to create a one-parent family') ?></a>
 				</td>
 			</tr>
 		</table>
 		<?php } ?>
 		<br>
 		<script>
-			persistent_toggle("show-date-differences", ".elderdate");
+			//persistent_toggle("show-date-differences", ".elderdate");
 		</script>
 		<?php
-
-		unset($show_full);
-		if (isset($saved_show_full)) {
-			$show_full = $saved_show_full;
-		}
 
 		return '<div id="' . $this->getName() . '_content">' . ob_get_clean() . '</div>';
 	}

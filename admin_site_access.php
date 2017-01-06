@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,11 +16,9 @@
 namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Controller\PageController;
-use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use PDO;
 
-define('WT_SCRIPT_NAME', 'admin_site_access.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
 
 $rules_display = [
 	'unknown' => I18N::translate('unknown'),
@@ -122,8 +120,6 @@ Database::exec(
 $controller = new PageController;
 $controller
 	->restrictAccess(Auth::isAdmin())
-	->addExternalJavascript(WT_JQUERY_DATATABLES_JS_URL)
-	->addExternalJavascript(WT_DATATABLES_BOOTSTRAP_JS_URL)
 	->setPageTitle(I18N::translate('Website access rules'));
 
 $action = Filter::get('action');
@@ -234,77 +230,76 @@ case 'create':
 	$rule                = $site_access_rule ? $site_access_rule->rule : 'allow';
 	$comment             = $site_access_rule ? $site_access_rule->comment : '';
 
+	echo Bootstrap4::breadcrumbs([
+		'admin.php'             => I18N::translate('Control panel'),
+		'admin_site_access.php' => I18N::translate('Website access rules'),
+	], $controller->getPageTitle());
 	?>
-	<ol class="breadcrumb small">
-		<li><a href="admin.php"><?php echo I18N::translate('Control panel'); ?></a></li>
-		<li><a href="admin_site_access.php"><?php echo I18N::translate('Website access rules'); ?></a></li>
-		<li class="active"><?php echo $controller->getPageTitle(); ?></li>
-	</ol>
 
-	<h1><?php echo $controller->getPageTitle(); ?></h1>
+	<h1><?= $controller->getPageTitle() ?></h1>
 
 	<form method="post" class="form form-horizontal">
 		<input type="hidden" name="action" value="save">
-		<input type="hidden" name="site_access_rule_id" value="<?php echo $site_access_rule_id; ?>">
-		<?php echo Filter::getCsrf(); ?>
+		<input type="hidden" name="site_access_rule_id" value="<?= $site_access_rule_id ?>">
+		<?= Filter::getCsrf() ?>
 
 		<!-- IP_ADDRESS_START -->
-		<div class="form-group">
-			<label class="control-label col-sm-3" for="ip_address_start">
-				<?php echo I18N::translate('Start IP address'); ?>
+		<div class="row form-group">
+			<label class="col-sm-3 col-form-label" for="ip_address_start">
+				<?= I18N::translate('Start IP address') ?>
 			</label>
 			<div class="col-sm-9">
-				<input class="form-control" type="text" id="ip_address_start" name="ip_address_start" required pattern="<?php echo WT_REGEX_IPV4; ?>" value="<?php echo Filter::escapeHtml($ip_address_start); ?>">
+				<input class="form-control" type="text" id="ip_address_start" name="ip_address_start" required pattern="<?= WT_REGEX_IPV4 ?>" value="<?= Filter::escapeHtml($ip_address_start) ?>">
 			</div>
 		</div>
 
 		<!-- IP_ADDRESS_END -->
-		<div class="form-group">
-			<label class="control-label col-sm-3" for="ip_address_end">
-				<?php echo I18N::translate('End IP address'); ?>
+		<div class="row form-group">
+			<label class="col-sm-3 col-form-label" for="ip_address_end">
+				<?= I18N::translate('End IP address') ?>
 			</label>
 			<div class="col-sm-9">
-				<input class="form-control" type="text" id="ip_address_end" name="ip_address_end" required pattern="<?php echo WT_REGEX_IPV4; ?>" value="<?php echo Filter::escapeHtml($ip_address_end); ?>">
+				<input class="form-control" type="text" id="ip_address_end" name="ip_address_end" required pattern="<?= WT_REGEX_IPV4 ?>" value="<?= Filter::escapeHtml($ip_address_end) ?>">
 			</div>
 		</div>
 
 		<!-- USER_AGENT_PATTERN -->
-		<div class="form-group">
-			<label class="control-label col-sm-3" for="user_agent_pattern">
-				<?php echo I18N::translate('User-agent string'); ?>
+		<div class="row form-group">
+			<label class="col-sm-3 col-form-label" for="user_agent_pattern">
+				<?= I18N::translate('User-agent string') ?>
 			</label>
 			<div class="col-sm-9">
-				<input class="form-control" type="text" id="user_agent_pattern" name="user_agent_pattern" required value="<?php echo Filter::escapeHtml($user_agent_pattern); ?>" maxlength="255" dir="ltr">
+				<input class="form-control" type="text" id="user_agent_pattern" name="user_agent_pattern" required value="<?= Filter::escapeHtml($user_agent_pattern) ?>" maxlength="255" dir="ltr">
 				<p class="small text-muted">
-					<?php echo I18N::translate('The “%” character is a wildcard, and will match zero or more other characters.'); ?>
+					<?= I18N::translate('The “%” character is a wildcard, and will match zero or more other characters.') ?>
 				</p>
 			</div>
 		</div>
 
 		<!-- RULE -->
-		<div class="form-group">
-			<label class="control-label col-sm-3" for="rule">
-				<?php echo /* I18N: A configuration setting */ I18N::translate('Rule'); ?>
+		<div class="row form-group">
+			<label class="col-sm-3 col-form-label" for="rule">
+				<?= /* I18N: A configuration setting */ I18N::translate('Rule') ?>
 			</label>
 			<div class="col-sm-9">
-				<?php echo FunctionsEdit::selectEditControl('rule', $rules_edit, null, $rule, 'class="form-control"'); ?>
+				<?= Bootstrap4::select($rules_edit, $rule, ['id' => 'rule', 'name' => 'rule]']) ?>
 			</div>
 		</div>
 
 		<!-- COMMENT -->
-		<div class="form-group">
-			<label class="control-label col-sm-3" for="comment">
-				<?php echo I18N::translate('Comment'); ?>
+		<div class="row form-group">
+			<label class="col-sm-3 col-form-label" for="comment">
+				<?= I18N::translate('Comment') ?>
 			</label>
 			<div class="col-sm-9">
-				<input class="form-control" type="text" id="comment" name="comment" value="<?php echo Filter::escapeHtml($comment); ?>" maxlength="255" dir="auto">
+				<input class="form-control" type="text" id="comment" name="comment" value="<?= Filter::escapeHtml($comment) ?>" maxlength="255" dir="auto">
 			</div>
 		</div>
 
-		<div class="form-group">
-			<div class="col-sm-offset-3 col-sm-9">
+		<div class="row form-group">
+			<div class="offset-sm-3 col-sm-9">
 				<button type="submit" class="btn btn-primary">
-					<?php echo I18N::translate('save'); ?>
+					<?= I18N::translate('save') ?>
 				</button>
 			</div>
 		</div>
@@ -319,8 +314,8 @@ default:
 		->addInlineJavascript('
 			jQuery.fn.dataTableExt.oSort["unicode-asc" ]=function(a,b) {return a.replace(/<[^<]*>/, "").localeCompare(b.replace(/<[^<]*>/, ""))};
 			jQuery.fn.dataTableExt.oSort["unicode-desc"]=function(a,b) {return b.replace(/<[^<]*>/, "").localeCompare(a.replace(/<[^<]*>/, ""))};
-			jQuery(".table-site-access-rules").dataTable({
-				ajax: "' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=load",
+			$(".table-site-access-rules").dataTable({
+				ajax: "?action=load",
 				serverSide: true,
 				' . I18N::datatablesI18N() . ',
 				processing: true,
@@ -340,37 +335,36 @@ default:
 			});
 		');
 
+	echo Bootstrap4::breadcrumbs([
+		'admin.php' => I18N::translate('Control panel'),
+	], $controller->getPageTitle());
 	?>
-	<ol class="breadcrumb small">
-		<li><a href="admin.php"><?php echo I18N::translate('Control panel'); ?></a></li>
-		<li class="active"><?php echo $controller->getPageTitle(); ?></li>
-	</ol>
 
-	<h1><?php echo $controller->getPageTitle(); ?></h1>
+	<h1><?= $controller->getPageTitle() ?></h1>
 
-	<p><?php echo /* I18N: http://en.wikipedia.org/wiki/User_agent */ I18N::translate('Restrict access to the website, using IP addresses and user-agent strings.'); ?></p>
+	<p><?= /* I18N: http://en.wikipedia.org/wiki/User_agent */ I18N::translate('Restrict access to the website, using IP addresses and user-agent strings.') ?></p>
 
 	<table class="table table-hover table-condensed table-bordered table-site-access-rules">
 		<caption>
-			<?php echo I18N::translate('The following rules are used to decide whether a visitor is a human being (allow full access), a search-engine robot (allow restricted access) or an unwanted crawler (deny all access).'); ?>
+			<?= I18N::translate('The following rules are used to decide whether a visitor is a human being (allow full access), a search-engine robot (allow restricted access) or an unwanted crawler (deny all access).') ?>
 		</caption>
 		<thead>
 		<tr>
-			<th><?php echo I18N::translate('Edit'); ?></th>
-			<th><?php echo /* I18N …of a range of addresses */ I18N::translate('Start IP address'); ?></th>
+			<th><?= I18N::translate('Edit') ?></th>
+			<th><?= /* I18N …of a range of addresses */ I18N::translate('Start IP address') ?></th>
 			<th>-</th>
-			<th><?php echo /* I18N …of a range of addresses */ I18N::translate('End IP address'); ?></th>
+			<th><?= /* I18N …of a range of addresses */ I18N::translate('End IP address') ?></th>
 			<th>-</th>
-			<th><?php echo /* I18N: http://en.wikipedia.org/wiki/User_agent_string */ I18N::translate('User-agent string'); ?></th>
-			<th><?php echo /* I18N: noun */ I18N::translate('Rule'); ?></th>
-			<th><?php echo I18N::translate('Comment'); ?></th>
+			<th><?= /* I18N: http://en.wikipedia.org/wiki/User_agent_string */ I18N::translate('User-agent string') ?></th>
+			<th><?= /* I18N: noun */ I18N::translate('Rule') ?></th>
+			<th><?= I18N::translate('Comment') ?></th>
 		</tr>
 		</thead>
 	</table>
 
 	<!-- Implement the delete action -->
 	<form class="hide" method="post" id="delete-form">
-		<?php echo Filter::getCsrf(); ?>
+		<?= Filter::getCsrf() ?>
 		<input type="hidden" name="site_access_rule_id" id="site-access-rule-id" value="">
 		<input type="hidden" name="action" value="delete">
 	</form>

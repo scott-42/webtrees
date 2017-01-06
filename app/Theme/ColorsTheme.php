@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -38,7 +38,7 @@ class ColorsTheme extends CloudsTheme implements ThemeInterface {
 	 * @return string A relative path, such as "themes/foo/"
 	 */
 	public function assetUrl() {
-		return 'themes/colors/css-1.7.8/';
+		return 'themes/colors/css-1.8.0/';
 	}
 
 	/**
@@ -48,24 +48,12 @@ class ColorsTheme extends CloudsTheme implements ThemeInterface {
 	 */
 	protected function formatSecondaryMenu() {
 		return
-			'<ul class="secondary-menu">' .
-			implode('', $this->secondaryMenu()) .
+			'<ul class="nav wt-secondary-menu">' .
+			implode('', array_map(function(Menu $menu) { return $this->formatSecondaryMenuItem($menu); }, $this->secondaryMenu())) .
 			'<li>' .
 			$this->formQuickSearch() .
 			'</li>' .
 			'</ul>';
-	}
-
-	/**
-	 * Create the contents of the <header> tag.
-	 *
-	 * @return string
-	 */
-	protected function headerContent() {
-		return
-			//$this->accessibilityLinks() .
-			$this->formatTreeTitle() .
-			$this->formatSecondaryMenu();
 	}
 
 	/**
@@ -144,7 +132,7 @@ class ColorsTheme extends CloudsTheme implements ThemeInterface {
 	 * @return Menu
 	 */
 	protected function menuPalette() {
-		if ($this->tree && Site::getPreference('ALLOW_USER_THEMES') && $this->tree->getPreference('ALLOW_THEME_DROPDOWN')) {
+		if ($this->tree !== null && Site::getPreference('ALLOW_USER_THEMES') === '1' && $this->tree->getPreference('ALLOW_THEME_DROPDOWN') === '1') {
 			$menu = new Menu(/* I18N: A colour scheme */
 				I18N::translate('Palette'), '#', 'menu-color');
 
@@ -171,8 +159,7 @@ class ColorsTheme extends CloudsTheme implements ThemeInterface {
 	 * @return string[]
 	 */
 	protected function stylesheets() {
-		return [
-			'themes/colors/jquery-ui-1.11.2/jquery-ui.css',
+		return parent::stylesheets() + [
 			$this->assetUrl() . 'style.css',
 			$this->assetUrl() . 'palette/' . $this->palette . '.css',
 		];

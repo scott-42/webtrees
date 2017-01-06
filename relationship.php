@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,39 +15,30 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\RelationshipController;
 use Fisharebest\Webtrees\Functions\Functions;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\Module\RelationshipsChartModule;
 
-define('WT_SCRIPT_NAME', 'relationship.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
 
-$max_recursion  = $WT_TREE->getPreference('RELATIONSHIP_RECURSION', RelationshipsChartModule::DEFAULT_RECURSION);
+require 'app/bootstrap.php';
+
+$max_recursion  = (int) $WT_TREE->getPreference('RELATIONSHIP_RECURSION', RelationshipsChartModule::DEFAULT_RECURSION);
 $ancestors_only = $WT_TREE->getPreference('RELATIONSHIP_ANCESTORS', RelationshipsChartModule::DEFAULT_ANCESTORS);
 
 $controller = new RelationshipController;
 $pid1       = Filter::get('pid1', WT_REGEX_XREF);
 $pid2       = Filter::get('pid2', WT_REGEX_XREF);
-$show_full  = Filter::getInteger('show_full', 0, 1, $WT_TREE->getPreference('PEDIGREE_FULL_DETAILS'));
 $recursion  = Filter::getInteger('recursion', 0, $max_recursion, 0);
-$ancestors  = Filter::getInteger('ancestors', 0, 1, 0);
+$ancestors  = Filter::get('ancestors', '[01]', '0');
 
 $person1 = Individual::getInstance($pid1, $WT_TREE);
 $person2 = Individual::getInstance($pid2, $WT_TREE);
 
-$controller
-	->restrictAccess(Module::isActiveChart($WT_TREE, 'relationships_chart'))
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();');
+$controller->restrictAccess(Module::isActiveChart($WT_TREE, 'relationships_chart'));
 
 if ($person1 && $person2) {
 	$controller
@@ -62,83 +53,61 @@ if ($person1 && $person2) {
 }
 
 ?>
-<h2><?php echo $controller->getPageTitle() ?></h2>
-<form name="people" method="get" action="?">
-	<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml() ?>">
-	<table class="list_table">
-		<tbody>
-			<tr>
-				<td class="descriptionbox">
-					<label for="pid1">
-						<?php echo I18N::translate('Individual 1') ?>
-					</label>
-				</td>
-				<td class="optionbox">
-					<input class="pedigree_form" data-autocomplete-type="INDI" type="text" name="pid1" id="pid1" size="3" value="<?php echo $pid1 ?>">
-					<?php echo FunctionsPrint::printFindIndividualLink('pid1') ?>
-				</td>
-				<td class="optionbox">
-					<label>
-						<?php echo FunctionsEdit::twoStateCheckbox('show_full', $show_full) ?>
-						<?php echo I18N::translate('Show details') ?>
-					</label>
-				</td>
-				<td class="optionbox vmiddle" rowspan="2">
-					<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('view') ?>">
-				</td>
-			</tr>
-			<tr>
-				<td class="descriptionbox">
-					<label for="pid2">
-						<?php echo I18N::translate('Individual 2') ?>
-					</label>
-				</td>
-				<td class="optionbox">
-					<input class="pedigree_form" data-autocomplete-type="INDI" type="text" name="pid2" id="pid2" size="3" value="<?php echo $pid2 ?>">
-					<?php echo FunctionsPrint::printFindIndividualLink('pid2') ?>
-					<br>
-					<a href="#" onclick="var x = jQuery('#pid1').val(); jQuery('#pid1').val(jQuery('#pid2').val()); jQuery('#pid2').val(x); return false;"><?php echo /* I18N: Reverse the order of two individuals */ I18N::translate('Swap individuals') ?></a>
-				</td>
-				<td class="optionbox">
-					<?php if ($ancestors_only === '1'): ?>
-						<input type="hidden" name="ancestors" value="1">
-						<?php echo I18N::translate('Find relationships via ancestors') ?>
-					<?php else: ?>
-						<label>
-							<input type="radio" name="ancestors" value="0" <?php echo $ancestors == 0 ? 'checked' : '' ?>>
-							<?php echo I18N::translate('Find any relationship') ?>
-						</label>
-						<br>
-						<label>
-							<input type="radio" name="ancestors" value="1" <?php echo $ancestors == 1 ? 'checked' : '' ?>>
-							<?php echo I18N::translate('Find relationships via ancestors') ?>
-						</label>
-					<?php endif; ?>
+<h2><?= $controller->getPageTitle() ?></h2>
 
-					<hr>
+<form>
+	<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 
-					<?php if ($max_recursion == 0): ?>
-						<?php echo I18N::translate('Find the closest relationships') ?>
-						<input type="hidden" name="recursion" value="0">
-					<?php else: ?>
-						<label>
-							<input type="radio" name="recursion" value="0" <?php echo $recursion == 0 ? 'checked' : '' ?>>
-							<?php echo I18N::translate('Find the closest relationships') ?>
-						</label>
-						<br>
-						<label>
-							<input type="radio" name="recursion" value="<?php echo $max_recursion ?>" <?php echo $recursion > 0 ? 'checked' : '' ?>>
-							<?php if ($max_recursion == RelationshipsChartModule::UNLIMITED_RECURSION): ?>
-								<?php echo I18N::translate('Find all possible relationships') ?>
-							<?php else: ?>
-								<?php echo I18N::translate('Find other relationships') ?>
-							<?php endif; ?>
-						</label>
-					<?php endif; ?>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="pid1">
+			<?= I18N::translate('Individual 1') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= FunctionsEdit::formControlIndividual($person1, ['id' => 'pid1', 'name' => 'pid1']) ?>
+			<a href="#" onclick="var x = $('#pid1').val(); $('#pid1').val($('#pid2').val()); $('#pid2').val(x); return false;"><?= /* I18N: Reverse the order of two individuals */ I18N::translate('Swap individuals') ?></a>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="pid2">
+			<?= I18N::translate('Individual 2') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= FunctionsEdit::formControlIndividual($person2, ['id' => 'pid2', 'name' => 'pid2']) ?>
+		</div>
+	</div>
+
+	<fieldset class="row form-group">
+		<legend class="col-sm-3 col-form-legend">
+		</legend>
+		<div class="col-sm-9">
+			<?php if ($ancestors_only === '1'): ?>
+				<input type="hidden" name="ancestors" value="1">
+				<?= I18N::translate('Find relationships via ancestors') ?>
+			<?php else: ?>
+				<?= Bootstrap4::radioButtons('ancestors', ['0' => I18N::translate('Find any relationship'), '1' => I18N::translate('Find relationships via ancestors')], $ancestors, false) ?>
+		<?php endif ?>
+		</div>
+	</fieldset>
+
+	<fieldset class="row form-group">
+		<legend class="col-sm-3 col-form-legend">
+		</legend>
+		<div class="col-sm-9">
+			<?php if ($max_recursion === 0): ?>
+				<?= I18N::translate('Find the closest relationships') ?>
+				<input type="hidden" name="recursion" value="0">
+			<?php else: ?>
+				<?= Bootstrap4::radioButtons('recursion', ['0' => I18N::translate('Find the closest relationships'), $max_recursion => $max_recursion == RelationshipsChartModule::UNLIMITED_RECURSION ? I18N::translate('Find all possible relationships') : I18N::translate('Find other relationships')], $ancestors, false) ?>
+		<?php endif ?>
+		</div>
+	</fieldset>
+
+	<div class="row form-group">
+		<div class="col-sm-9 offset-sm-3">
+			<input class="btn btn-primary" type="submit" value="<?= /* I18N: A button label. */ I18N::translate('view') ?>">
+		</div>
+	</div>
 </form>
 <?php
 
@@ -219,7 +188,7 @@ if ($person1 && $person2) {
 			} else {
 				$individual = Individual::getInstance($xref, $WT_TREE);
 				ob_start();
-				FunctionsPrint::printPedigreePerson($individual, $show_full);
+				FunctionsPrint::printPedigreePerson($individual);
 				$table[$x][$y] = ob_get_clean();
 			}
 		}

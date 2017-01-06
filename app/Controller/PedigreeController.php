@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -32,7 +32,7 @@ class PedigreeController extends ChartController {
 	const LANDSCAPE        = 1;
 	const OLDEST_AT_TOP    = 2;
 	const OLDEST_AT_BOTTOM = 3;
-	const MENU_ITEM        = '<a href="pedigree.php?rootid=%s&amp;show_full=%s&amp;PEDIGREE_GENERATIONS=%s&amp;orientation=%s" class="%s noprint">%s</a>';
+	const MENU_ITEM        = '<a href="pedigree.php?rootid=%s&amp;PEDIGREE_GENERATIONS=%s&amp;orientation=%s" class="%s">%s</a>';
 
 	/**
 	 * Next and previous generation arrow size
@@ -259,17 +259,17 @@ class PedigreeController extends ChartController {
 		$families = $this->root->getSpouseFamilies();
 		$html     = '';
 		if (!empty($families)) {
-			$html = sprintf('<div id="childarrow"><a href="#" class="menuselect noprint %s"></a><div id="childbox">', $this->arrows->menu);
+			$html = sprintf('<div id="childarrow"><a href="#" class="menuselect %s"></a><div id="childbox">', $this->arrows->menu);
 
 			foreach ($families as $family) {
 				$html .= '<span class="name1">' . I18N::translate('Family') . '</span>';
 				$spouse = $family->getSpouse($this->root);
 				if ($spouse) {
-					$html .= sprintf(self::MENU_ITEM, $spouse->getXref(), $this->showFull(), $this->generations, $this->orientation, 'name1', $spouse->getFullName());
+					$html .= sprintf(self::MENU_ITEM, $spouse->getXref(), $this->generations, $this->orientation, 'name1', $spouse->getFullName());
 				}
 				$children = $family->getChildren();
 				foreach ($children as $sibling) {
-					$html .= sprintf(self::MENU_ITEM, $sibling->getXref(), $this->showFull(), $this->generations, $this->orientation, 'name1', $sibling->getFullName());
+					$html .= sprintf(self::MENU_ITEM, $sibling->getXref(), $this->generations, $this->orientation, 'name1', $sibling->getFullName());
 				}
 			}
 			//-- echo the siblings
@@ -282,7 +282,7 @@ class PedigreeController extends ChartController {
 					$html .= count($siblings) > 1 ? I18N::translate('Siblings') : I18N::translate('Sibling');
 					$html .= '</span>';
 					foreach ($siblings as $sibling) {
-						$html .= sprintf(self::MENU_ITEM, $sibling->getXref(), $this->showFull(), $this->generations, $this->orientation, 'name1', $sibling->getFullName());
+						$html .= sprintf(self::MENU_ITEM, $sibling->getXref(), $this->generations, $this->orientation, 'name1', $sibling->getFullName());
 					}
 				}
 			}
@@ -312,7 +312,7 @@ class PedigreeController extends ChartController {
 				if ($index > (int) ($this->treesize / 2) + (int) ($this->treesize / 4)) {
 					$rootParentId++;
 				}
-				$html .= sprintf(self::MENU_ITEM, $this->nodes[$rootParentId]['indi']->getXref(), $this->showFull(), $this->generations, $this->orientation, $this->arrows->prevGen, '');
+				$html .= sprintf(self::MENU_ITEM, $this->nodes[$rootParentId]['indi']->getXref(), $this->generations, $this->orientation, $this->arrows->prevGen, '');
 				$html .= '</div>';
 			} else {
 				$html .= '<div class="spacer"></div>';

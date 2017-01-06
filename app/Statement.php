@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -78,13 +78,10 @@ class Statement {
 			}
 		}
 
-		$start = microtime(true);
 		$this->pdo_statement->execute();
-		$end = microtime(true);
+
 		// If it was a SELECT statement, we cannot run it again.
 		$this->executed = strpos($this->pdo_statement->queryString, 'SELECT') === 0;
-
-		Database::logQuery($this->pdo_statement->queryString, $this->pdo_statement->rowCount(), $end - $start, $bind_variables);
 
 		return $this;
 	}

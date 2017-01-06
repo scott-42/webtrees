@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,28 +15,21 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
-use Fisharebest\Webtrees\Controller\SimpleController;
+use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\GedcomCode\GedcomCodePedi;
 
-define('WT_SCRIPT_NAME', 'edit_interface.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $action = Filter::post('action', null, Filter::get('action'));
 
-$controller = new SimpleController;
+$controller = new PageController;
 $controller
 	->restrictAccess(Auth::isEditor($WT_TREE))
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();')
 	->addInlineJavascript('var locale_date_format="' . preg_replace('/[^DMY]/', '', str_replace(['j', 'F'], ['D', 'M'], I18N::dateFormat())) . '";');
 
 switch ($action) {
@@ -50,44 +43,44 @@ case 'editraw':
 	$controller
 		->setPageTitle($record->getFullName() . ' - ' . I18N::translate('Edit the raw GEDCOM'))
 		->pageHeader()
-		->addInlineJavascript('jQuery("#raw-gedcom-list").sortable({opacity: 0.7, cursor: "move", axis: "y"});');
+		->addInlineJavascript('$("#raw-gedcom-list").sortable({opacity: 0.7, cursor: "move", axis: "y"});');
 
 	?>
 	<div id="edit_interface-page">
 		<h2>
-			<?php echo $controller->getPageTitle(); ?>
-			<?php echo FunctionsPrint::helpLink('edit_edit_raw'); ?>
+			<?= $controller->getPageTitle() ?>
+			<?= FunctionsPrint::helpLink('edit_edit_raw') ?>
 		</h2>
-		<pre>     <?php echo '0 @' . $record->getXref() . '@ ' . $record::RECORD_TYPE; ?></pre>
 		<form method="post" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="updateraw">
-			<input type="hidden" name="xref" value="<?php echo $xref; ?>">
-			<?php echo Filter::getCsrf(); ?>
+			<input type="hidden" name="xref" value="<?= $xref ?>">
 			<ul id="raw-gedcom-list">
+				<li><textarea class="form-control" readonly rows="1"><?= '0 @' . $record->getXref() . '@ ' . $record::RECORD_TYPE ?></textarea></li>
+				<?= Filter::getCsrf() ?>
 				<?php foreach ($record->getFacts() as $fact) { ?>
 					<?php if (!$fact->isPendingDeletion()) { ?>
 					<li>
 						<div style="cursor:move;">
-							<?php echo $fact->summary(); ?>
+							<?= $fact->summary() ?>
 						</div>
-						<input type="hidden" name="fact_id[]" value="<?php echo $fact->getFactId(); ?>">
-						<textarea name="fact[]" dir="ltr" rows="<?php echo preg_match_all('/\n/', $fact->getGedcom()); ?>" style="width:100%;"><?php echo Filter::escapeHtml($fact->getGedcom()); ?></textarea>
+						<input type="hidden" name="fact_id[]" value="<?= $fact->getFactId() ?>">
+						<textarea name="fact[]" dir="ltr" rows="<?= preg_match_all('/\n/', $fact->getGedcom()) ?>" style="width:100%;"><?= Filter::escapeHtml($fact->getGedcom()) ?></textarea>
 					</li>
 					<?php } ?>
 				<?php } ?>
 				<li>
 					<div style="cursor:move;">
-						<b><i><?php echo I18N::translate('Add a fact'); ?><i></b>
+						<b><i><?= I18N::translate('Add a fact') ?><i></b>
 					</div>
 					<input type="hidden" name="fact_id[]" value="">
 					<textarea name="fact[]" dir="ltr" rows="2" style="width:100%;"></textarea>
 				</li>
+				<li>
+					<input type="submit" class="btn btn-primary" value="<?= I18N::translate('save') ?>">
+					<a class="btn btn-link" href="<?= $record->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
+				</li>
 			</ul>
-			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
-			</p>
 		</form>
 	</div>
 	<?php
@@ -101,16 +94,11 @@ case 'updateraw':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=editraw&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$record = GedcomRecord::getInstance($xref, $WT_TREE);
 	check_record_access($record);
-
-	$controller
-		->setPageTitle($record->getFullName() . ' - ' . I18N::translate('Edit the raw GEDCOM'))
-		->pageHeader();
 
 	$gedcom = '0 @' . $record->getXref() . '@ ' . $record::RECORD_TYPE;
 
@@ -131,7 +119,7 @@ case 'updateraw':
 
 	$record->updateRecord($gedcom, false);
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $record->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -151,11 +139,8 @@ case 'editrawfact':
 		}
 	}
 	if (!$edit_fact) {
-		$controller
-			->pageHeader()
-			->addInlineJavascript('closePopupAndReloadParent();');
-
-		return;
+		header('Location: ' . $record->getAbsoluteLinkUrl());
+		break;
 	}
 
 	$controller
@@ -165,23 +150,23 @@ case 'editrawfact':
 	?>
 	<div id="edit_interface-page">
 		<h2>
-			<?php echo $controller->getPageTitle(); ?>
-			<?php echo FunctionsPrint::helpLink('edit_edit_raw'); ?>
-			<?php FunctionsPrint::printSpecialCharacterLink('gedcom'); ?>
+			<?= $controller->getPageTitle() ?>
+			<?= FunctionsPrint::helpLink('edit_edit_raw') ?>
+			<?php FunctionsPrint::printSpecialCharacterLink('gedcom') ?>
 		</h2>
 		<form method="post" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="updaterawfact">
-			<input type="hidden" name="xref" value="<?php echo $xref; ?>">
-			<input type="hidden" name="fact_id" value="<?php echo $fact_id; ?>">
-			<?php echo Filter::getCsrf(); ?>
-			<textarea name="gedcom" id="gedcom" dir="ltr"><?php echo Filter::escapeHtml($edit_fact->getGedcom()); ?></textarea>
+			<input type="hidden" name="xref" value="<?= $xref ?>">
+			<input type="hidden" name="fact_id" value="<?= $fact_id ?>">
+			<?= Filter::getCsrf() ?>
+			<textarea name="gedcom" id="gedcom" dir="ltr"><?= Filter::escapeHtml($edit_fact->getGedcom()) ?></textarea>
 			<table class="facts_table">
-				<?php echo keep_chan($record); ?>
+				<?= keep_chan($record) ?>
 			</table>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<a class="btn btn-link" href="<?= $record->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -197,40 +182,25 @@ case 'updaterawfact':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=editrawfact&xref=' . $xref . '&fact_id=' . $fact_id);
-
-		return;
+		break;
 	}
 
 	$record = GedcomRecord::getInstance($xref, $WT_TREE);
 	check_record_access($record);
 
 	// Find the fact to edit
-	$edit_fact = null;
 	foreach ($record->getFacts() as $fact) {
 		if ($fact->getFactId() === $fact_id && $fact->canEdit()) {
-			$edit_fact = $fact;
+			// Cleanup the client’s bad editing?
+			$gedcom = preg_replace('/[\r\n]+/', "\n", $gedcom); // Empty lines
+			$gedcom = trim($gedcom); // Leading/trailing spaces
+
+			$record->updateFact($fact_id, $gedcom, !$keep_chan);
 			break;
 		}
 	}
-	if (!$edit_fact) {
-		$controller
-			->pageHeader()
-			->addInlineJavascript('closePopupAndReloadParent();');
 
-		return;
-	}
-
-	$controller
-		->setPageTitle($record->getFullName() . ' - ' . I18N::translate('Edit the raw GEDCOM'))
-		->pageHeader();
-
-	// Cleanup the client’s bad editing?
-	$gedcom = preg_replace('/[\r\n]+/', "\n", $gedcom); // Empty lines
-	$gedcom = trim($gedcom); // Leading/trailing spaces
-
-	$record->updateFact($fact_id, $gedcom, !$keep_chan);
-
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $record->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -250,15 +220,12 @@ case 'edit':
 		}
 	}
 	if (!$edit_fact) {
-		$controller
-			->pageHeader()
-			->addInlineJavascript('closePopupAndReloadParent();');
-
-		return;
+		header('Location: ' . $record->getAbsoluteLinkUrl());
+		break;
 	}
 
 	$controller
-		->setPageTitle($record->getFullName() . ' - ' . I18N::translate('Edit'))
+		->setPageTitle($record->getFullName() . ' - ' . GedcomTag::getLabel($edit_fact->getTag()))
 		->pageHeader();
 
 	echo '<div id="edit_interface-page">';
@@ -271,10 +238,8 @@ case 'edit':
 	echo '<input type="hidden" name="xref" value="', $xref, '">';
 	echo '<input type="hidden" name="prev_action" value="edit">';
 	echo Filter::getCsrf();
-	echo '<table class="facts_table">';
 	FunctionsEdit::createEditForm($edit_fact);
 	echo keep_chan($record);
-	echo '</table>';
 
 	$level1type = $edit_fact->getTag();
 	switch ($record::RECORD_TYPE) {
@@ -321,12 +286,13 @@ case 'edit':
 	}
 	?>
 		<p id="save-cancel">
-			<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-			<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+			<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+			<a class="btn btn-link" href="<?= $record->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 		</p>
 	</form>
 	</div>
 	<?php
+	echo FunctionsEdit::createRecordFormModals($WT_TREE);
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -354,17 +320,13 @@ case 'add':
 	echo '<input type="hidden" name="prev_action" value="add">';
 	echo '<input type="hidden" name="fact_type" value="' . $fact . '">';
 	echo Filter::getCsrf();
-	echo '<table class="facts_table">';
-
 	FunctionsEdit::createAddForm($fact);
-
 	echo keep_chan($record);
-	echo '</table>';
 
 	// Genealogical facts (e.g. for INDI and FAM records) can have 2 SOUR/NOTE/OBJE/ASSO/RESN ...
 	if ($level0type === 'INDI' || $level0type === 'FAM') {
 		// ... but not facts which are simply links to other records
-		if ($fact !== 'OBJE' && $fact !== 'NOTE' && $fact !== 'SHARED_NOTE' && $fact !== 'REPO' && $fact !== 'SOUR' && $fact !== 'ASSO' && $fact !== 'ALIA') {
+		if ($fact !== 'OBJE' && $fact !== 'NOTE' && $fact !== 'SHARED_NOTE' && $fact !== 'REPO' && $fact !== 'SOUR' && $fact !== 'SUBM' && $fact !== 'ASSO' && $fact !== 'ALIA') {
 			FunctionsEdit::printAddLayer('SOUR');
 			FunctionsEdit::printAddLayer('OBJE');
 			// Don’t add notes to notes!
@@ -382,12 +344,14 @@ case 'add':
 	}
 	?>
 		<p id="save-cancel">
-			<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-			<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+			<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+			<a class="btn btn-link" href="<?= $record->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 		</p>
 	</form>
 	</div>
 	<?php
+	echo FunctionsEdit::createRecordFormModals($WT_TREE);
+
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -401,8 +365,7 @@ case 'update':
 		$prev_action = Filter::post('prev_action', 'add|edit|addname|editname');
 		$fact_type   = Filter::post('fact_type', WT_REGEX_TAG);
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=' . $prev_action . '&xref=' . $xref . '&fact_id=' . $fact_id . '&fact=' . $fact_type);
-
-		return;
+		break;
 	}
 
 	$record = GedcomRecord::getInstance($xref, $WT_TREE);
@@ -414,15 +377,11 @@ case 'update':
 	$text    = Filter::postArray('text');
 	$islink  = Filter::postArray('islink', '[01]');
 
-	$controller
-		->setPageTitle(I18N::translate('Edit'))
-		->pageHeader();
-
 	// If the fact has a DATE or PLAC, then delete any value of Y
 	if ($text[0] === 'Y') {
-		for ($n = 1; $n < count($tag); ++$n) {
-			if ($glevels[$n] == 2 && ($tag[$n] === 'DATE' || $tag[$n] === 'PLAC') && $text[$n]) {
-				$text[0] = '';
+		foreach ($tag as $n => $value) {
+			if ($glevels[$n] == 2 && ($value === 'DATE' || $value === 'PLAC') && $text[$n] !== '') {
+				$text[0] = 'EEK!';
 				break;
 			}
 		}
@@ -479,7 +438,7 @@ case 'update':
 		}
 	}
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . WT_BASE_URL . $record->getRawUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -511,8 +470,7 @@ case 'add_child_to_family_action':
 	if (!Filter::checkCsrf()) {
 		$gender = Filter::get('gender', '[MFU]', 'U');
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_child_to_family&xref=' . $xref . '&gender=' . $gender);
-
-		return;
+		break;
 	}
 
 	$family = Family::getInstance($xref, $WT_TREE);
@@ -556,9 +514,9 @@ case 'add_child_to_family_action':
 	}
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $new_child->getRawUrl() . '");');
+		header('Location: ' . $new_child->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . $family->getAbsoluteLinkUrl());
 	}
 	break;
 
@@ -588,8 +546,7 @@ case 'add_child_to_individual_action':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_child_to_individual&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
@@ -632,9 +589,9 @@ case 'add_child_to_individual_action':
 	$family->createFact('1 CHIL @' . $child->getXref() . '@', true);
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $child->getRawUrl() . '");');
+		header('Location: ' . $child->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . $person->getAbsoluteLinkUrl());
 	}
 	break;
 
@@ -671,8 +628,7 @@ case 'add_parent_to_individual_action':
 	if (!Filter::checkCsrf()) {
 		$gender = Filter::get('gender', '[MFU]', 'U');
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_parent_to_individual&xref=' . $xref . '&gender=' . $gender);
-
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
@@ -715,9 +671,9 @@ case 'add_parent_to_individual_action':
 	}
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $parent->getRawUrl() . '");');
+		header('Location: ' . $parent->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . $person->getAbsoluteLinkUrl());
 	}
 	break;
 
@@ -741,8 +697,7 @@ case 'add_unlinked_indi_action':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_unlinked_indi');
-
-		return;
+		break;
 	}
 
 	$controller
@@ -767,9 +722,9 @@ case 'add_unlinked_indi_action':
 	$new_indi = $WT_TREE->createRecord($gedrec);
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $new_indi->getRawUrl() . '");');
+		header('Location: ' . $new_indi->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . WT_BASE_URL . 'admin_trees_manage.php');
 	}
 	break;
 
@@ -777,18 +732,18 @@ case 'add_unlinked_indi_action':
 // Add a spouse to an existing individual (creating a new family)
 ////////////////////////////////////////////////////////////////////////////////
 case 'add_spouse_to_individual':
-	$famtag = Filter::get('famtag', 'HUSB|WIFE');
-	$xref   = Filter::get('xref', WT_REGEX_XREF);
+	$sex  = Filter::get('sex', 'M|F', 'F');
+	$xref = Filter::get('xref', WT_REGEX_XREF);
 
 	$individual = Individual::getInstance($xref, $WT_TREE);
 	check_record_access($individual);
 
-	if ($famtag === 'WIFE') {
+	if ($sex === 'F') {
 		$controller->setPageTitle(I18N::translate('Add a wife'));
-		$sex = 'F';
+		$famtag = 'WIFE';
 	} else {
 		$controller->setPageTitle(I18N::translate('Add a husband'));
-		$sex = 'M';
+		$famtag = 'HUSB';
 	}
 	$controller->pageHeader();
 
@@ -804,18 +759,13 @@ case 'add_spouse_to_individual_action':
 	$islink  = Filter::postArray('islink', '[01]');
 
 	if (!Filter::checkCsrf()) {
-		$famtag = Filter::get('famtag', 'HUSB|WIFE');
-		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_spouse_to_individual&xref=' . $xref . '&famtag=' . $famtag);
+		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_spouse_to_individual&xref=' . $xref . '&sex=' . $sex);
 
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
 	check_record_access($person);
-
-	$controller
-		->setPageTitle(I18N::translate('Add a spouse'))
-		->pageHeader();
 
 	FunctionsEdit::splitSource();
 	$indi_gedcom = '0 @REF@ INDI';
@@ -857,9 +807,9 @@ case 'add_spouse_to_individual_action':
 	$person->createFact('1 FAMS @' . $family->getXref() . '@', true);
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $spouse->getRawUrl() . '");');
+		header('Location: ' . $spouse->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . $person->getAbsoluteLinkUrl());
 	}
 	break;
 
@@ -899,7 +849,7 @@ case 'add_spouse_to_family_action':
 		$famtag = Filter::get('famtag', 'HUSB|WIFE');
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=add_spouse_to_family&xref=' . $xref . '&famtag=' . $famtag);
 
-		return;
+		break;
 	}
 
 	$controller->pageHeader();
@@ -944,9 +894,9 @@ case 'add_spouse_to_family_action':
 	$family->createFact(trim($famrec), true); // trim leading \n
 
 	if (Filter::post('goto') === 'new') {
-		$controller->addInlineJavascript('closePopupAndReloadParent("' . $spouse->getRawUrl() . '");');
+		header('Location: ' . $spouse->getAbsoluteLinkUrl());
 	} else {
-		$controller->addInlineJavascript('closePopupAndReloadParent();');
+		header('Location: ' . $family->getAbsoluteLinkUrl());
 	}
 	break;
 
@@ -965,38 +915,37 @@ case 'addfamlink':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<form method="post" name="addchildform" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="linkfamaction">
-			<input type="hidden" name="xref" value="<?php echo $person->getXref(); ?>">
-			<?php echo Filter::getCsrf(); ?>
+			<input type="hidden" name="xref" value="<?= $person->getXref() ?>">
+			<?= Filter::getCsrf() ?>
 			<table class="facts_table">
 				<tr>
 					<td class="facts_label">
-						<?php echo I18N::translate('Family'); ?>
+						<?= I18N::translate('Family') ?>
 					</td>
 					<td class="facts_value">
 						<input data-autocomplete-type="FAM" type="text" id="famid" name="famid" size="8">
-						<?php echo FunctionsPrint::printFindFamilyLink('famid'); ?>
 					</td>
 				</tr>
 				<tr>
 					<td class="facts_label">
-						<?php echo GedcomTag::getLabel('PEDI'); ?>
+						<?= I18N::translate('Pedigree') ?>
 					</td>
 					<td class="facts_value">
-						<?php echo FunctionsEdit::editFieldPedigree('PEDI', '', '', $person); ?>
+						<?= Bootstrap4::select(GedcomCodePedi::getValues($person), '', ['id' => 'PEDI', 'name' => 'PEDI']) ?>
 						<p class="small text-muted">
-							<?php echo I18N::translate('A child may have more than one set of parents. The relationship between the child and the parents can be biological, legal, or based on local culture and tradition. If no pedigree is specified, then a biological relationship will be assumed.'); ?>
+							<?= I18N::translate('A child may have more than one set of parents. The relationship between the child and the parents can be biological, legal, or based on local culture and tradition. If no pedigree is specified, then a biological relationship will be assumed.') ?>
 						</p>
 					</td>
 				</tr>
-				<?php echo keep_chan($person); ?>
+				<?= keep_chan($person) ?>
 			</table>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<a class="btn btn-link" href="<?= $person->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -1010,18 +959,13 @@ case 'linkfamaction':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=addfamlink&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
 	$family = Family::getInstance($famid, $WT_TREE);
 	check_record_access($person);
 	check_record_access($family);
-
-	$controller
-		->setPageTitle($person->getFullName() . ' - ' . I18N::translate('Link this individual to an existing family as a child'))
-		->pageHeader();
 
 	// Replace any existing child->family link (we may be changing the PEDI);
 	$fact_id = null;
@@ -1047,7 +991,7 @@ case 'linkfamaction':
 		$family->createFact('1 CHIL @' . $person->getXref() . '@', true);
 	}
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $person->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1073,38 +1017,37 @@ case 'linkspouse':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<form method="post" name="addchildform" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="linkspouseaction">
-			<input type="hidden" name="xref" value="<?php echo $person->getXref(); ?>">
-			<input type="hidden" name="famtag" value="<?php echo $famtag; ?>">
-			<?php echo Filter::getCsrf(); ?>
+			<input type="hidden" name="xref" value="<?= $person->getXref() ?>">
+			<input type="hidden" name="famtag" value="<?= $famtag ?>">
+			<?= Filter::getCsrf() ?>
 			<table class="facts_table">
 				<tr>
 					<td class="facts_label">
-						<?php echo $label; ?>
+						<?= $label ?>
 					</td>
 					<td class="facts_value">
 						<input data-autocomplete-type="INDI" id="spouseid" type="text" name="spid" size="8">
-						<?php echo FunctionsPrint::printFindIndividualLink('spouseid'); ?>
 					</td>
 				</tr>
-				<?php FunctionsEdit::addSimpleTag('0 MARR Y'); ?>
-				<?php FunctionsEdit::addSimpleTag('0 DATE', 'MARR'); ?>
-				<?php FunctionsEdit::addSimpleTag('0 PLAC', 'MARR'); ?>
-				<?php echo keep_chan($person); ?>
+				<?php FunctionsEdit::addSimpleTag('0 MARR Y') ?>
+				<?php FunctionsEdit::addSimpleTag('0 DATE', 'MARR') ?>
+				<?php FunctionsEdit::addSimpleTag('0 PLAC', 'MARR') ?>
+				<?= keep_chan($person) ?>
 			</table>
-			<?php FunctionsEdit::printAddLayer('SOUR'); ?>
-			<?php FunctionsEdit::printAddLayer('OBJE'); ?>
-			<?php FunctionsEdit::printAddLayer('NOTE'); ?>
-			<?php FunctionsEdit::printAddLayer('SHARED_NOTE'); ?>
-			<?php FunctionsEdit::printAddLayer('ASSO'); ?>
-			<?php FunctionsEdit::printAddLayer('ASSO2'); ?>
-			<?php FunctionsEdit::printAddLayer('RESN'); ?>
+			<?php FunctionsEdit::printAddLayer('SOUR') ?>
+			<?php FunctionsEdit::printAddLayer('OBJE') ?>
+			<?php FunctionsEdit::printAddLayer('NOTE') ?>
+			<?php FunctionsEdit::printAddLayer('SHARED_NOTE') ?>
+			<?php FunctionsEdit::printAddLayer('ASSO') ?>
+			<?php FunctionsEdit::printAddLayer('ASSO2') ?>
+			<?php FunctionsEdit::printAddLayer('RESN') ?>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<a class="btn btn-link" href="<?= $person->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -1124,7 +1067,7 @@ case 'linkspouseaction':
 		$famtag = Filter::get('famtag', 'HUSB|WIFE');
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=linkspouse&xref=' . $xref . '&famtag=' . $famtag);
 
-		return;
+		break;
 	}
 
 	$person  = Individual::getInstance($xref, $WT_TREE);
@@ -1165,7 +1108,7 @@ case 'linkspouseaction':
 	$person->createFact('1 FAMS @' . $family->getXref() . '@', true);
 	$spouse->createFact('1 FAMS @' . $family->getXref() . '@', true);
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $person->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1180,7 +1123,7 @@ case 'addnewsource':
 	<script>
 		function check_form(frm) {
 			if (frm.TITL.value=="") {
-				alert('<?php echo I18N::translate('You must provide a source title'); ?>');
+				alert('<?= I18N::translate('You must provide a source title') ?>');
 				frm.TITL.focus();
 				return false;
 			}
@@ -1188,51 +1131,53 @@ case 'addnewsource':
 		}
 	</script>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<form method="post" action="edit_interface.php" onsubmit="return check_form(this);">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="addsourceaction">
 			<input type="hidden" name="xref" value="newsour">
-			<?php echo Filter::getCsrf(); ?>
+			<?= Filter::getCsrf() ?>
 			<table class="facts_table">
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('TITL'); ?></td>
-				<td class="optionbox wrap"><input type="text" data-autocomplete-type="SOUR_TITL" name="TITL" id="TITL" value="" size="60"> <?php echo FunctionsPrint::printSpecialCharacterLink('TITL'); ?></td></tr>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('ABBR'); ?></td>
-				<td class="optionbox wrap"><input type="text" name="ABBR" id="ABBR" value="" size="40" maxlength="255"> <?php echo FunctionsPrint::printSpecialCharacterLink('ABBR'); ?></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Title') ?></td>
+				<td class="optionbox wrap"><input type="text" data-autocomplete-type="SOUR_TITL" name="TITL" id="TITL" value="" size="60"> <?= FunctionsPrint::printSpecialCharacterLink('TITL') ?></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Abbreviation') ?></td>
+				<td class="optionbox wrap"><input type="text" name="ABBR" id="ABBR" value="" size="40" maxlength="255"> <?= FunctionsPrint::printSpecialCharacterLink('ABBR') ?></td></tr>
 				<?php if (strstr($WT_TREE->getPreference('ADVANCED_NAME_FACTS'), '_HEB') !== false) { ?>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('_HEB'); ?></td>
-				<td class="optionbox wrap"><input type="text" name="_HEB" id="_HEB" value="" size="60"> <?php echo FunctionsPrint::printSpecialCharacterLink('_HEB'); ?></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('_HEB') ?></td>
+				<td class="optionbox wrap"><input type="text" name="_HEB" id="_HEB" value="" size="60">
+					<?= FunctionsPrint::printSpecialCharacterLink('_HEB') ?></td></tr>
 				<?php } ?>
 				<?php if (strstr($WT_TREE->getPreference('ADVANCED_NAME_FACTS'), 'ROMN') !== false) { ?>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('ROMN'); ?></td>
-				<td class="optionbox wrap"><input  type="text" name="ROMN" id="ROMN" value="" size="60"> <?php echo FunctionsPrint::printSpecialCharacterLink('ROMN'); ?></td></tr>
+				<tr><td class="descriptionbox wrap width25">
+						<?= GedcomTag::getLabel('ROMN') ?></td>
+				<td class="optionbox wrap"><input  type="text" name="ROMN" id="ROMN" value="" size="60"> <?= FunctionsPrint::printSpecialCharacterLink('ROMN') ?></td></tr>
 				<?php } ?>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('AUTH'); ?></td>
-				<td class="optionbox wrap"><input type="text" name="AUTH" id="AUTH" value="" size="40" maxlength="255"> <?php echo FunctionsPrint::printSpecialCharacterLink('AUTH'); ?></td></tr>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('PUBL'); ?></td>
-				<td class="optionbox wrap"><textarea name="PUBL" id="PUBL" rows="5" cols="60"></textarea><br><?php echo FunctionsPrint::printSpecialCharacterLink('PUBL'); ?></td></tr>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('REPO'); ?></td>
-				<td class="optionbox wrap"><input type="text" data-autocomplete-type="REPO" name="REPO" id="REPO" value="" size="10"> <?php echo FunctionsPrint::printFindRepositoryLink('REPO'), ' ', FunctionsEdit::printAddNewRepositoryLink('REPO'); ?></td></tr>
-				<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('CALN'); ?></td>
+				<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Author') ?></td>
+				<td class="optionbox wrap"><input type="text" name="AUTH" id="AUTH" value="" size="40" maxlength="255"> <?= FunctionsPrint::printSpecialCharacterLink('AUTH') ?></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('PUBL') ?></td>
+				<td class="optionbox wrap"><textarea name="PUBL" id="PUBL" rows="5" cols="60"></textarea><br><?= FunctionsPrint::printSpecialCharacterLink('PUBL') ?></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Repository') ?></td>
+				<td class="optionbox wrap"><input type="text" data-autocomplete-type="REPO" name="REPO" id="REPO" value="" size="10"></td></tr>
+				<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Call number') ?></td>
 				<td class="optionbox wrap"><input type="text" name="CALN" id="CALN" value=""></td></tr>
-				<?php echo keep_chan(); ?>
+				<?= keep_chan() ?>
 			</table>
 				<a href="#"  onclick="return expand_layer('events');"><i id="events_img" class="icon-plus"></i>
-				<?php echo I18N::translate('Associate events with this source'); ?></a>
+				<?= I18N::translate('Associate events with this source') ?></a>
 				<div id="events" style="display: none;">
 				<table class="facts_table">
 				<tr>
-					<td class="descriptionbox wrap width25"><?php echo I18N::translate('Select events'), FunctionsPrint::helpLink('edit_SOUR_EVEN'); ?></td>
+					<td class="descriptionbox wrap width25"><?= I18N::translate('Select events'), FunctionsPrint::helpLink('edit_SOUR_EVEN') ?></td>
 					<td class="optionbox wrap"><select name="EVEN[]" multiple="multiple" size="5">
 						<?php
 						$parts = explode(',', $WT_TREE->getPreference('INDI_FACTS_ADD'));
 						foreach ($parts as $key) {
-							?><option value="<?php echo $key; ?>"><?php echo GedcomTag::getLabel($key); ?></option>
+							?><option value="<?= $key ?>"><?= GedcomTag::getLabel($key) ?></option>
 						<?php
 						}
 						$parts = explode(',', $WT_TREE->getPreference('FAM_FACTS_ADD'));
 						foreach ($parts as $key) {
-							?><option value="<?php echo $key; ?>"><?php echo GedcomTag::getLabel($key); ?></option>
+							?><option value="<?= $key ?>"><?= GedcomTag::getLabel($key) ?></option>
 						<?php
 						}
 						?>
@@ -1246,8 +1191,7 @@ case 'addnewsource':
 				</table>
 			</div>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
 			</p>
 		</form>
 	</div>
@@ -1261,8 +1205,7 @@ case 'addsourceaction':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=addnewsource');
-
-		return;
+		break;
 	}
 
 	$newgedrec = '0 @XREF@ SOUR';
@@ -1330,13 +1273,13 @@ case 'addnewnote':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 
 		<form method="post" action="edit_interface.php" onsubmit="return check_form(this);">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="addnoteaction">
 			<input type="hidden" name="noteid" value="newnote">
-			<?php echo Filter::getCsrf(); ?>
+			<?= Filter::getCsrf() ?>
 			<?php
 			echo '<table class="facts_table">';
 			echo '<tr>';
@@ -1351,8 +1294,7 @@ case 'addnewnote':
 			echo '</table>';
 			?>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
 			</p>
 		</form>
 	</div>
@@ -1366,8 +1308,7 @@ case 'addnoteaction':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=addnewnote');
-
-		return;
+		break;
 	}
 
 	$gedrec = '0 @XREF@ NOTE ' . preg_replace("/\r?\n/", "\n1 CONT ", Filter::post('NOTE'));
@@ -1399,13 +1340,13 @@ case 'addmedia_links':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
-		<form method="post" action="edit_interface.php?xref=<?php echo $person->getXref(); ?>" onsubmit="findindi()">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+		<h2><?= $controller->getPageTitle() ?></h2>
+		<form method="post" action="edit_interface.php?xref=<?= $person->getXref() ?>" onsubmit="findindi()">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="addmedia_links">
 			<input type="hidden" name="noteid" value="newnote">
-			<?php echo Filter::getCsrf(); ?>
-			<?php require WT_ROOT . WT_MODULES_DIR . 'GEDFact_assistant/MEDIA_ctrl.php'; ?>
+			<?= Filter::getCsrf() ?>
+			<?php require WT_ROOT . WT_MODULES_DIR . 'GEDFact_assistant/MEDIA_ctrl.php' ?>
 		</form>
 	</div>
 	<?php
@@ -1426,26 +1367,26 @@ case 'editnote':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<form method="post" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="editnoteaction">
-			<input type="hidden" name="xref" value="<?php echo $xref; ?>">
-			<?php echo Filter::getCsrf(); ?>
+			<input type="hidden" name="xref" value="<?= $xref ?>">
+			<?= Filter::getCsrf() ?>
 			<table class="facts_table">
 				<tr>
-					<td class="descriptionbox wrap width25"><?php echo I18N::translate('Shared note'); ?></td>
+					<td class="descriptionbox wrap width25"><?= I18N::translate('Shared note') ?></td>
 					<td class="optionbox wrap">
-						<textarea name="NOTE" id="NOTE" rows="15" cols="90"><?php echo Filter::escapeHtml($note->getNote()); ?></textarea>
+						<textarea name="NOTE" id="NOTE" rows="15" cols="90"><?= Filter::escapeHtml($note->getNote()) ?></textarea>
 						<br>
-						<?php echo FunctionsPrint::printSpecialCharacterLink('NOTE'); ?>
+						<?= FunctionsPrint::printSpecialCharacterLink('NOTE') ?>
 					</td>
 				</tr>
-				<?php echo keep_chan($note); ?>
+				<?= keep_chan($note) ?>
 			</table>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<a class="btn btn-link" href="<?= $note->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -1459,8 +1400,7 @@ case 'editnoteaction':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=editnote&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$record = Note::getInstance($xref, $WT_TREE);
@@ -1481,7 +1421,7 @@ case 'editnoteaction':
 
 	$record->updateRecord($gedrec, !$keep_chan);
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $record->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1499,7 +1439,7 @@ case 'addnewrepository':
 	?>
 		function check_form(frm) {
 			if (frm.NAME.value=="") {
-				alert('<?php echo I18N::translate('You must provide a repository name.'); ?>');
+				alert('<?= I18N::translate('You must provide a repository name.') ?>');
 				frm.NAME.focus();
 				return false;
 			}
@@ -1509,34 +1449,33 @@ case 'addnewrepository':
 	echo '</script>';
 	?>
 	<form method="post" action="edit_interface.php" onsubmit="return check_form(this);">
-		<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+		<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 		<input type="hidden" name="action" value="addrepoaction">
 		<input type="hidden" name="xref" value="newrepo">
-		<?php echo Filter::getCsrf(); ?>
+		<?= Filter::getCsrf() ?>
 		<table class="facts_table">
-			<tr><td class="descriptionbox wrap width25"><?php echo I18N::translate('Repository name'); ?></td>
-			<td class="optionbox wrap"><input type="text" name="REPO_NAME" id="REPO_NAME" value="" size="40" maxlength="255"> <?php echo FunctionsPrint::printSpecialCharacterLink('REPO_NAME'); ?></td></tr>
+			<tr><td class="descriptionbox wrap width25"><?= I18N::translate('Repository name') ?></td>
+			<td class="optionbox wrap"><input type="text" name="REPO_NAME" id="REPO_NAME" value="" size="40" maxlength="255"> <?= FunctionsPrint::printSpecialCharacterLink('REPO_NAME') ?></td></tr>
 			<?php if (strstr($WT_TREE->getPreference('ADVANCED_NAME_FACTS'), '_HEB') !== false) { ?>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('_HEB'); ?></td>
-			<td class="optionbox wrap"><input type="text" name="_HEB" id="_HEB" value="" size="40" maxlength="255"> <?php echo FunctionsPrint::printSpecialCharacterLink('_HEB'); ?></td></tr>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('_HEB') ?></td>
+			<td class="optionbox wrap"><input type="text" name="_HEB" id="_HEB" value="" size="40" maxlength="255"> <?= FunctionsPrint::printSpecialCharacterLink('_HEB') ?></td></tr>
 			<?php } ?>
 			<?php if (strstr($WT_TREE->getPreference('ADVANCED_NAME_FACTS'), 'ROMN') !== false) { ?>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('ROMN'); ?></td>
-			<td class="optionbox wrap"><input type="text" name="ROMN" id="ROMN" value="" size="40" maxlength="255"> <?php echo FunctionsPrint::printSpecialCharacterLink('ROMN'); ?></td></tr>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('ROMN') ?></td>
+			<td class="optionbox wrap"><input type="text" name="ROMN" id="ROMN" value="" size="40" maxlength="255"> <?= FunctionsPrint::printSpecialCharacterLink('ROMN') ?></td></tr>
 			<?php } ?>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('ADDR'); ?></td>
-			<td class="optionbox wrap"><textarea name="ADDR" id="ADDR" rows="5" cols="60"></textarea><?php echo FunctionsPrint::printSpecialCharacterLink('ADDR'); ?> </td></tr>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('PHON'); ?></td>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('ADDR') ?></td>
+			<td class="optionbox wrap"><textarea name="ADDR" id="ADDR" rows="5" cols="60"></textarea><?= FunctionsPrint::printSpecialCharacterLink('ADDR') ?> </td></tr>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('PHON') ?></td>
 			<td class="optionbox wrap"><input type="text" name="PHON" id="PHON" value="" size="40" maxlength="255"> </td></tr>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('EMAIL'); ?></td>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('EMAIL') ?></td>
 			<td class="optionbox wrap"><input type="text" name="EMAIL" id="EMAIL" value="" size="40" maxlength="255"></td></tr>
-			<tr><td class="descriptionbox wrap width25"><?php echo GedcomTag::getLabel('WWW'); ?></td>
+			<tr><td class="descriptionbox wrap width25"><?= GedcomTag::getLabel('WWW') ?></td>
 			<td class="optionbox wrap"><input type="text" name="WWW" id="WWW" value="" size="40" maxlength="255"> </td></tr>
-			<?php echo keep_chan(); ?>
+			<?= keep_chan() ?>
 		</table>
 		<p id="save-cancel">
-			<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-			<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+			<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
 		</p>
 	</form>
 	</div>
@@ -1544,11 +1483,9 @@ case 'addnewrepository':
 	break;
 
 case 'addrepoaction':
-
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=addnewrepository');
-
-		return;
+		break;
 	}
 
 	$controller
@@ -1609,11 +1546,8 @@ case 'editname':
 		}
 	}
 	if (!$name_fact) {
-		$controller
-			->pageHeader()
-			->addInlineJavascript('closePopupAndReloadParent();');
-
-		return;
+		header('Location: ' . $person->getAbsoluteLinkUrl());
+		break;
 	}
 
 	$controller
@@ -1621,21 +1555,20 @@ case 'editname':
 		->pageHeader();
 
 	print_indi_form('update', $person, null, $name_fact, '', $person->getSex());
-
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
 case 'addname':
 	$xref = Filter::get('xref', WT_REGEX_XREF);
 
-	$person = Individual::getInstance($xref, $WT_TREE);
-	check_record_access($person);
+	$individual = Individual::getInstance($xref, $WT_TREE);
+	check_record_access($individual);
 
 	$controller
-		->setPageTitle(I18N::translate('Add a name'))
+		->setPageTitle($individual->getFullName() . ' — ' . I18N::translate('Add a name'))
 		->pageHeader();
 
-	print_indi_form('update', $person, null, null, '', $person->getSex());
+	print_indi_form('update', $individual, null, null, '', $individual->getSex());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1651,11 +1584,11 @@ case 'reorder_media':
 		->setPageTitle(I18N::translate('Re-order media'))
 		->pageHeader()
 		->addInlineJavascript('
-			jQuery("#reorder_media_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});
+			$("#reorder_media_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});
 
 			//-- update the order numbers after drag-n-drop sorting is complete
-			jQuery("#reorder_media_list").bind("sortupdate", function(event, ui) {
-					jQuery("#"+jQuery(this).attr("id")+" input").each(
+			$("#reorder_media_list").bind("sortupdate", function(event, ui) {
+					$("#"+$(this).attr("id")+" input").each(
 						function (index, value) {
 							value.value = index+1;
 						}
@@ -1695,32 +1628,32 @@ case 'reorder_media':
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo I18N::translate('Re-order media'); ?></h2>
+		<h2><?= I18N::translate('Re-order media') ?></h2>
 		<form name="reorder_form" method="post" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="reorder_media_update">
-			<input type="hidden" name="xref" value="<?php echo $xref; ?>">
-			<?php echo Filter::getCsrf(); ?>
+			<input type="hidden" name="xref" value="<?= $xref ?>">
+			<?= Filter::getCsrf() ?>
 			<ul id="reorder_media_list">
 			<?php foreach ($sort_obje as $n => $obje) { ?>
-				<li class="facts_value" style="list-style:none;cursor:move;margin-bottom:2px;" id="li_<?php echo $obje->getXref(); ?>">
+				<li class="facts_value" style="list-style:none;cursor:move;margin-bottom:2px;" id="li_<?= $obje->getXref() ?>">
 					<table class="pic">
 						<tr>
 							<td>
-								<?php echo $obje->displayImage(); ?>
+								<?= $obje->displayImage() ?>
 							</td>
 							<td>
-								<?php echo $obje->getFullName(); ?>
+								<?= $obje->getFullName() ?>
 							</td>
 						</tr>
 					</table>
-					<input type="hidden" name="order1[<?php echo $obje->getXref(); ?>]" value="<?php echo $n; ?>">
+					<input type="hidden" name="order1[<?= $obje->getXref() ?>]" value="<?= $n ?>">
 				</li>
 			<?php } ?>
 			</ul>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<a class="btn btn-link" href="<?= $record->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -1733,8 +1666,7 @@ case 'reorder_media_update':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=reorder_media_&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
@@ -1760,7 +1692,7 @@ case 'reorder_media_update':
 
 	$person->updateRecord(implode("\n", $facts), false);
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $person->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1774,20 +1706,20 @@ case 'reorder_children':
 	check_record_access($family);
 
 	$controller
-		->addInlineJavascript('jQuery("#reorder_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});')
-		->addInlineJavascript('jQuery("#reorder_list").bind("sortupdate", function(event, ui) { jQuery("#"+jQuery(this).attr("id")+" input").each( function (index, value) { value.value = index+1; }); });')
+		->addInlineJavascript('$("#reorder_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});')
+		->addInlineJavascript('$("#reorder_list").bind("sortupdate", function(event, ui) { $("#"+$(this).attr("id")+" input").each( function (index, value) { value.value = index+1; }); });')
 		->setPageTitle(I18N::translate('Re-order children'))
 		->pageHeader();
 
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<form name="reorder_form" method="post" action="edit_interface.php">
-			<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+			<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 			<input type="hidden" name="action" value="reorder_update">
-			<input type="hidden" name="xref" value="<?php echo $xref; ?>">
+			<input type="hidden" name="xref" value="<?= $xref ?>">
 			<input type="hidden" name="option" value="bybirth">
-			<?php echo Filter::getCsrf(); ?>
+			<?= Filter::getCsrf() ?>
 			<ul id="reorder_list">
 				<?php
 				// reorder children in modified families
@@ -1823,9 +1755,9 @@ case 'reorder_children':
 			?>
 			</ul>
 			<p id="save-cancel">
-				<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-				<input type="submit" class="save" onclick="document.reorder_form.action.value='reorder_children'; document.reorder_form.submit();" value="<?php echo I18N::translate('sort by date of birth'); ?>">
-				<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+				<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+				<input type="submit" class="save" onclick="document.reorder_form.action.value='reorder_children'; document.reorder_form.submit();" value="<?= I18N::translate('sort by date of birth') ?>">
+				<a class="btn btn-link" href="<?= $family->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 			</p>
 		</form>
 	</div>
@@ -1838,8 +1770,7 @@ case 'reorder_update':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=reorder_children&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$family = Family::getInstance($xref, $WT_TREE);
@@ -1870,7 +1801,7 @@ case 'reorder_update':
 		$family->updateRecord(implode("\n", $gedcom), false);
 	}
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $family->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1891,13 +1822,13 @@ case 'changefamily':
 	$children = $family->getChildren();
 	?>
 	<div id="edit_interface-page">
-		<h2><?php echo $controller->getPageTitle(); ?></h2>
+		<h2><?= $controller->getPageTitle() ?></h2>
 		<div id="changefam">
 			<form name="changefamform" method="post" action="edit_interface.php">
-				<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+				<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 				<input type="hidden" name="action" value="changefamily_update">
-				<input type="hidden" name="xref" value="<?php echo $xref; ?>">
-				<?php echo Filter::getCsrf(); ?>
+				<input type="hidden" name="xref" value="<?= $xref ?>">
+				<?= Filter::getCsrf() ?>
 				<table>
 					<tr>
 					<?php if ($father) { ?>
@@ -1911,27 +1842,24 @@ case 'changefamily':
 								}
 								?>
 							</b>
-							<input type="hidden" name="HUSB" value="<?php echo $father->getXref(); ?>">
+							<input type="hidden" name="HUSB" value="<?= $father->getXref() ?>">
 						</td>
-						<td id="HUSBName" class="optionbox"><?php echo $father->getFullName(); ?>
+						<td id="HUSBName" class="optionbox"><?= $father->getFullName() ?>
 						</td>
 					<?php } else { ?>
 						<td class="descriptionbox">
-							<b><?php echo I18N::translate('spouse'); ?></b>
+							<b><?= I18N::translate('spouse') ?></b>
 							<input type="hidden" name="HUSB" value="">
 						</td>
 						<td id="HUSBName" class="optionbox">
 						</td>
 					<?php } ?>
 						<td class="optionbox">
-							<a href="#" id="husbrem" style="display: <?php echo is_null($father) ? 'none' : 'block'; ?>;" onclick="document.changefamform.HUSB.value=''; document.getElementById('HUSBName').innerHTML=''; this.style.display='none'; return false;">
-								<?php echo I18N::translate('Remove'); ?>
+							<a href="#" id="husbrem" style="display: <?= is_null($father) ? 'none' : 'block' ?>;" onclick="document.changefamform.HUSB.value=''; document.getElementById('HUSBName').innerHTML=''; this.style.display='none'; return false;">
+								<?= I18N::translate('Remove') ?>
 							</a>
 						</td>
 						<td class="optionbox">
-							<a href="#" onclick="return findIndi(document.changefamform.HUSB, document.getElementById('HUSBName'));">
-								<?php echo I18N::translate('Change'); ?>
-							</a>
 						</td>
 					</tr>
 					<tr>
@@ -1946,28 +1874,25 @@ case 'changefamily':
 								}
 								?>
 							</b>
-							<input type="hidden" name="WIFE" value="<?php echo $mother->getXref(); ?>">
+							<input type="hidden" name="WIFE" value="<?= $mother->getXref() ?>">
 						</td>
 						<td id="WIFEName" class="optionbox">
-							<?php echo $mother->getFullName(); ?>
+							<?= $mother->getFullName() ?>
 						</td>
 					<?php } else { ?>
 						<td class="descriptionbox">
-							<b><?php echo I18N::translate('spouse'); ?></b>
+							<b><?= I18N::translate('spouse') ?></b>
 							<input type="hidden" name="WIFE" value="">
 						</td>
 						<td id="WIFEName" class="optionbox">
 						</td>
 					<?php } ?>
 						<td class="optionbox">
-							<a href="#" id="wiferem" style="display: <?php echo is_null($mother) ? 'none' : 'block'; ?>;" onclick="document.changefamform.WIFE.value=''; document.getElementById('WIFEName').innerHTML=''; this.style.display='none'; return false;">
-								<?php echo I18N::translate('Remove'); ?>
+							<a href="#" id="wiferem" style="display: <?= is_null($mother) ? 'none' : 'block' ?>;" onclick="document.changefamform.WIFE.value=''; document.getElementById('WIFEName').innerHTML=''; this.style.display='none'; return false;">
+								<?= I18N::translate('Remove') ?>
 							</a>
 						</td>
 						<td class="optionbox">
-							<a href="#" onclick="return findIndi(document.changefamform.WIFE, document.getElementById('WIFEName'));">
-								<?php echo I18N::translate('Change'); ?>
-							</a>
 						</td>
 					</tr>
 					<?php $i = 0; foreach ($children as $child) { ?>
@@ -1982,42 +1907,36 @@ case 'changefamily':
 								}
 								?>
 							</b>
-							<input type="hidden" name="CHIL<?php echo $i; ?>" value="<?php echo $child->getXref(); ?>">
+							<input type="hidden" name="CHIL<?= $i ?>" value="<?= $child->getXref() ?>">
 						</td>
-						<td id="CHILName<?php echo $i; ?>" class="optionbox"><?php echo $child->getFullName(); ?>
+						<td id="CHILName<?= $i ?>" class="optionbox"><?= $child->getFullName() ?>
 						</td>
 						<td class="optionbox">
-							<a href="#" id="childrem<?php echo $i; ?>" style="display: block;" onclick="document.changefamform.CHIL<?php echo $i; ?>.value=''; document.getElementById('CHILName<?php echo $i; ?>').innerHTML=''; this.style.display='none'; return false;">
-								<?php echo I18N::translate('Remove'); ?>
+							<a href="#" id="childrem<?= $i ?>" style="display: block;" onclick="document.changefamform.CHIL<?= $i ?>.value=''; document.getElementById('CHILName<?= $i ?>').innerHTML=''; this.style.display='none'; return false;">
+								<?= I18N::translate('Remove') ?>
 							</a>
 						</td>
 						<td class="optionbox">
-							<a href="#" onclick="return findIndi(document.changefamform.CHIL<?php echo $i; ?>, document.getElementById('CHILName<?php echo $i; ?>'));">
-								<?php echo I18N::translate('Change'); ?>
-							</a>
 						</td>
 					</tr>
 					<?php $i++; } ?>
 					<tr>
 						<td class="descriptionbox">
-							<b><?php echo I18N::translate('child'); ?></b>
-							<input type="hidden" name="CHIL<?php echo $i; ?>" value="">
+							<b><?= I18N::translate('child') ?></b>
+							<input type="hidden" name="CHIL<?= $i ?>" value="">
 						</td>
-						<td id="CHILName<?php echo $i; ?>" class="optionbox">
+						<td id="CHILName<?= $i ?>" class="optionbox">
 						</td>
 						<td colspan="2" class="optionbox child">
-							<a href="#" id="childrem<?php echo $i; ?>" style="display: none;" onclick="document.changefamform.CHIL<?php echo $i; ?>.value=''; document.getElementById('CHILName<?php echo $i; ?>').innerHTML=''; this.style.display='none'; return false;">
-								<?php echo I18N::translate('Remove'); ?>
-							</a>
-							<a href="#" onclick="remElement = document.getElementById('childrem<?php echo $i; ?>'); return findIndi(document.changefamform.CHIL<?php echo $i; ?>, document.getElementById('CHILName<?php echo $i; ?>'));">
-								<?php echo I18N::translate('Add'); ?>
+							<a href="#" id="childrem<?= $i ?>" style="display: none;" onclick="document.changefamform.CHIL<?= $i ?>.value=''; document.getElementById('CHILName<?= $i ?>').innerHTML=''; this.style.display='none'; return false;">
+								<?= I18N::translate('Remove') ?>
 							</a>
 						</td>
 					</tr>
 				</table>
 				<p id="save-cancel">
-					<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-					<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+					<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+					<a class="btn btn-link" href="<?= $family->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 				</p>
 			</form>
 		</div>
@@ -2033,8 +1952,7 @@ case 'changefamily_update':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=changefamily&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$CHIL = [];
@@ -2134,7 +2052,7 @@ case 'changefamily_update':
 		}
 	}
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $family->getAbsoluteLinkUrl());
 	break;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2148,9 +2066,9 @@ case 'reorder_fams':
 	check_record_access($person);
 
 	$controller
-		->addInlineJavascript('jQuery("#reorder_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});')
+		->addInlineJavascript('$("#reorder_list").sortable({forceHelperSize: true, forcePlaceholderSize: true, opacity: 0.7, cursor: "move", axis: "y"});')
 		//-- update the order numbers after drag-n-drop sorting is complete
-		->addInlineJavascript('jQuery("#reorder_list").bind("sortupdate", function(event, ui) { jQuery("#"+jQuery(this).attr("id")+" input").each( function (index, value) { value.value = index+1; }); });')
+		->addInlineJavascript('$("#reorder_list").bind("sortupdate", function(event, ui) { $("#"+$(this).attr("id")+" input").each( function (index, value) { value.value = index+1; }); });')
 		->setPageTitle(I18N::translate('Re-order families'))
 		->pageHeader();
 
@@ -2161,26 +2079,26 @@ case 'reorder_fams':
 
 	?>
 	<div id="edit_interface-page">
-	<h2><?php echo $controller->getPageTitle(); ?></h2>
+	<h2><?= $controller->getPageTitle() ?></h2>
 	<form name="reorder_form" method="post" action="edit_interface.php">
-		<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+		<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 		<input type="hidden" name="action" value="reorder_fams_update">
-		<input type="hidden" name="xref" value="<?php echo $xref; ?>">
+		<input type="hidden" name="xref" value="<?= $xref ?>">
 		<input type="hidden" name="option" value="bymarriage">
-		<?php echo Filter::getCsrf(); ?>
+		<?= Filter::getCsrf() ?>
 		<ul id="reorder_list">
 		<?php foreach ($fams as $n => $family) { ?>
-			<li class="facts_value" style="cursor:move;margin-bottom:2px;" id="li_<?php echo $family->getXref(); ?>">
-				<div class="name2"><?php echo $family->getFullName(); ?></div>
-				<?php echo $family->formatFirstMajorFact(WT_EVENTS_MARR, 2); ?>
-				<input type="hidden" name="order[<?php echo $family->getXref(); ?>]" value="<?php echo $n; ?>">
+			<li class="facts_value" style="cursor:move;margin-bottom:2px;" id="li_<?= $family->getXref() ?>">
+				<div class="name2"><?= $family->getFullName() ?></div>
+				<?= $family->formatFirstMajorFact(WT_EVENTS_MARR, 2) ?>
+				<input type="hidden" name="order[<?= $family->getXref() ?>]" value="<?= $n ?>">
 			</li>
 		<?php } ?>
 		</ul>
 		<p id="save-cancel">
-			<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-			<input type="submit" class="save" onclick="document.reorder_form.action.value='reorder_fams'; document.reorder_form.submit();" value="<?php echo I18N::translate('sort by date of marriage'); ?>">
-			<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+			<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+			<input type="submit" class="save" onclick="document.reorder_form.action.value='reorder_fams'; document.reorder_form.submit();" value="<?= I18N::translate('sort by date of marriage') ?>">
+			<a class="btn btn-link" href="<?= $person->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 		</p>
 	</form>
 	</div>
@@ -2193,8 +2111,7 @@ case 'reorder_fams_update':
 
 	if (!Filter::checkCsrf()) {
 		header('Location: ' . WT_BASE_URL . WT_SCRIPT_NAME . '?action=reorder_fams&xref=' . $xref);
-
-		return;
+		break;
 	}
 
 	$person = Individual::getInstance($xref, $WT_TREE);
@@ -2225,7 +2142,7 @@ case 'reorder_fams_update':
 		$person->updateRecord(implode("\n", $gedcom), false);
 	}
 
-	$controller->addInlineJavascript('closePopupAndReloadParent();');
+	header('Location: ' . $person->getAbsoluteLinkUrl());
 	break;
 }
 
@@ -2249,13 +2166,12 @@ function keep_chan(GedcomRecord $record = null) {
 		}
 
 		return
-			'<tr><td class="descriptionbox wrap width25">' .
-			GedcomTag::getLabel('CHAN') .
-			'</td><td class="optionbox wrap">' .
-			'<input type="checkbox" name="keep_chan" value="1" ' . ($WT_TREE->getPreference('NO_UPDATE_CHAN') ? 'checked' : '') . '>' .
-			I18N::translate('Keep the existing “last change” information') .
+			'<div class="form-group row"><label class="col-sm-3 col-form-label" for="keep_chan">' .
+			I18N::translate('Last change') .
+			'</label><div class="col-sm-9">' .
+			Bootstrap4::checkbox(I18N::translate('Keep the existing “last change” information'), true, ['name' => 'keep_chan', 'checked' => (bool) $WT_TREE->getPreference('NO_UPDATE_CHAN')]) .
 			$details .
-			'</td></tr>';
+			'</div></div>';
 	} else {
 		return '';
 	}
@@ -2565,7 +2481,7 @@ function print_indi_form($nextaction, Individual $person = null, Family $family 
 	if (preg_match('/^add_(child|spouse|parent|unlinked_indi)/', $nextaction)) {
 		echo '<input type="submit" class="save" value="', /* I18N: A button label. */ I18N::translate('go to new individual'), '" onclick="document.addchildform.goto.value=\'new\';">';
 	}
-	echo '<input type="button" class="cancel" value="', /* I18N: A button label. */ I18N::translate('close'), '" onclick="window.close();">';
+	echo '<a class="btn btn-link" href="' . $person->getHtmlUrl() . '">' . I18N::translate('cancel') . '</a>';
 	echo '</p>';
 	echo '</form>';
 	$controller->addInlineJavascript('
@@ -2587,11 +2503,11 @@ function print_indi_form($nextaction, Individual $person = null, Family $family 
 
 	// Generate a full name from the name components
 	function generate_name() {
-		var npfx = jQuery("#NPFX").val();
-		var givn = jQuery("#GIVN").val();
-		var spfx = jQuery("#SPFX").val();
-		var surn = jQuery("#SURN").val();
-		var nsfx = jQuery("#NSFX").val();
+		var npfx = $("#NPFX").val();
+		var givn = $("#GIVN").val();
+		var spfx = $("#SPFX").val();
+		var surn = $("#SURN").val();
+		var nsfx = $("#NSFX").val();
 		if (SURNAME_TRADITION === "polish" && (gender === "F" || famtag === "WIFE")) {
 			surn = surn.replace(/ski$/, "ska");
 			surn = surn.replace(/cki$/, "cka");
@@ -2621,14 +2537,14 @@ function print_indi_form($nextaction, Individual $person = null, Family $family 
 		if (manualChange) {
 			return;
 		}
-		var npfx = jQuery("#NPFX").val();
-		var givn = jQuery("#GIVN").val();
-		var spfx = jQuery("#SPFX").val();
-		var surn = jQuery("#SURN").val();
-		var nsfx = jQuery("#NSFX").val();
+		var npfx = $("#NPFX").val();
+		var givn = $("#GIVN").val();
+		var spfx = $("#SPFX").val();
+		var surn = $("#SURN").val();
+		var nsfx = $("#NSFX").val();
 		var name = generate_name();
-		jQuery("#NAME").val(name);
-		jQuery("#NAME_display").text(name);
+		$("#NAME").val(name);
+		$("#NAME_display").text(name);
 		// Married names inherit some NSFX values, but not these
 		nsfx = nsfx.replace(/^(I|II|III|IV|V|VI|Junior|Jr\.?|Senior|Sr\.?)$/i, "");
 		// Update _MARNM field from _MARNM_SURN field and display it
@@ -2673,11 +2589,11 @@ function print_indi_form($nextaction, Individual $person = null, Family $family 
 	// set the manual change to true first. We are probably
 	// listening to the wrong events on the input fields...
 	var manualChange = true;
-	manualChange = generate_name() !== jQuery("#NAME").val();
+	manualChange = generate_name() !== $("#NAME").val();
 
 	function convertHidden(eid) {
-		var input1 = jQuery("#" + eid);
-		var input2 = jQuery("#" + eid + "_display");
+		var input1 = $("#" + eid);
+		var input2 = $("#" + eid + "_display");
 		// Note that IE does not allow us to change the type of an input, so we must create a new one.
 		if (input1.attr("type")=="hidden") {
 			input1.replaceWith(input1.clone().attr("type", "text"));
@@ -2735,15 +2651,12 @@ function print_indi_form($nextaction, Individual $person = null, Family $family 
 /**
  * Can we edit a GedcomRecord object
  *
- * @param GedcomRecord $object
+ * @param GedcomRecord $record
  */
-function check_record_access(GedcomRecord $object = null) {
-	global $controller;
+function check_record_access(GedcomRecord $record = null) {
+	if (!$record || !$record->canShow() || !$record->canEdit()) {
+		header('Location: ' . $record->getAbsoluteLinkUrl());
 
-	if (!$object || !$object->canShow() || !$object->canEdit()) {
-		$controller
-			->pageHeader()
-			->addInlineJavascript('closePopupAndReloadParent();');
 		exit;
 	}
 }

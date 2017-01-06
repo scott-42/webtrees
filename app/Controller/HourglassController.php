@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -46,20 +46,19 @@ class HourglassController extends ChartController {
 	/** @var bool Can the Javascript be loaded by the controller. */
 	private $canLoadJS;
 
-	const LINK        = "<a class='%s' href='%s' data-parms='%s-%s-%s'></a>";
-	const SWITCH_LINK = "<a href='hourglass.php?rootid=%s&amp;show_spouse=%s&amp;show_full=%s&amp;generations=%s' class='name1'>%s</a>";
+	const LINK        = "<a class='%s' href='%s' data-parms='%s-%s'></a>";
+	const SWITCH_LINK = "<a href='hourglass.php?rootid=%s&amp;show_spouse=%s&amp;generations=%s' class='name1'>%s</a>";
 
 	/**
 	 * Create the hourglass controller.
 	 *
 	 * @param string $rootid
-	 * @param int    $show_full
 	 * @param bool   $loadJS
 	 */
-	public function __construct($rootid = '', $show_full = 1, $loadJS = true) {
+	public function __construct($rootid = '', $loadJS = true) {
 		global $WT_TREE;
 
-		parent::__construct($show_full);
+		parent::__construct();
 
 		// Extract parameters from
 		$this->show_spouse = Filter::getInteger('show_spouse', 0, 1, 0);
@@ -124,7 +123,7 @@ class HourglassController extends ChartController {
 			echo '<td><img class="line4" src="' . Theme::theme()->parameter('image-hline') . '" width="7" height="3"></td>';
 			echo '<td>';
 			//-- print the father box
-			FunctionsPrint::printPedigreePerson($family->getHusband(), $this->showFull());
+			FunctionsPrint::printPedigreePerson($family->getHusband());
 			echo '</td>';
 			if ($family->getHusband()) {
 				$ARID = $family->getHusband()->getXref();
@@ -132,7 +131,7 @@ class HourglassController extends ChartController {
 
 				//-- print an Ajax arrow on the last generation of the adult male
 				if ($count == $this->generations - 1 && $family->getHusband()->getChildFamilies()) {
-					printf(self::LINK, $this->right_arrow, $ARID, 'asc', $this->showFull(), $this->show_spouse);
+					printf(self::LINK, $this->right_arrow, $ARID, 'asc', $this->show_spouse);
 				}
 				//-- recursively get the father’s family
 				$this->printPersonPedigree($family->getHusband(), $count + 1);
@@ -156,7 +155,7 @@ class HourglassController extends ChartController {
 				'<td><img class="line4" src="' . Theme::theme()->parameter('image-hline') . '" width="7" height="3"></td>',
 			'<td>';
 			//-- print the mother box
-			FunctionsPrint::printPedigreePerson($family->getWife(), $this->showFull());
+			FunctionsPrint::printPedigreePerson($family->getWife());
 			echo '</td>';
 			if ($family->getWife()) {
 				$ARID = $family->getWife()->getXref();
@@ -164,7 +163,7 @@ class HourglassController extends ChartController {
 
 				//-- print an ajax arrow on the last generation of the adult female
 				if ($count == $this->generations - 1 && $family->getWife()->getChildFamilies()) {
-					printf(self::LINK, $this->right_arrow, $ARID, 'asc', $this->showFull(), $this->show_spouse);
+					printf(self::LINK, $this->right_arrow, $ARID, 'asc', $this->show_spouse);
 				}
 				//-- recursively print the mother’s family
 				$this->printPersonPedigree($family->getWife(), $count + 1);
@@ -182,7 +181,7 @@ class HourglassController extends ChartController {
 	 */
 
 	private function printEmptyBox() {
-		return $this->showFull() ? Theme::theme()->individualBoxEmpty() : Theme::theme()->individualBoxSmallEmpty();
+		return Theme::theme()->individualBoxEmpty();
 	}
 
 	/**
@@ -278,7 +277,7 @@ class HourglassController extends ChartController {
 			if ($kcount == 0) {
 				echo "</td><td style='width:", $this->getBoxDimensions()->width, "px'>";
 			} else {
-				printf(self::LINK, $this->left_arrow, $pid, 'desc', $this->showFull(), $this->show_spouse);
+				printf(self::LINK, $this->left_arrow, $pid, 'desc', $this->show_spouse);
 				//-- move the arrow up to line up with the correct box
 				if ($this->show_spouse) {
 					echo str_repeat('<br><br><br>', count($families));
@@ -288,14 +287,14 @@ class HourglassController extends ChartController {
 		}
 
 		echo '<table id="table2_' . $pid . '"><tr><td>';
-		FunctionsPrint::printPedigreePerson($person, $this->showFull());
+		FunctionsPrint::printPedigreePerson($person);
 		echo '</td><td><img class="line2" src="' . Theme::theme()->parameter('image-hline') . '" width="7" height="3">';
 
 		//----- Print the spouse
 		if ($this->show_spouse) {
 			foreach ($families as $family) {
 				echo "</td></tr><tr><td style='text-align:$otablealign'>";
-				FunctionsPrint::printPedigreePerson($family->getSpouse($person), $this->showFull());
+				FunctionsPrint::printPedigreePerson($family->getSpouse($person));
 				$numkids++;
 				echo '</td><td></td>';
 			}
@@ -327,10 +326,10 @@ class HourglassController extends ChartController {
 						echo "<span class='name1'>" . I18N::translate('Family') . '</span>';
 						$spouse = $family->getSpouse($person);
 						if ($spouse) {
-							printf(self::SWITCH_LINK, $spouse->getXref(), $this->show_spouse, $this->showFull(), $this->generations, $spouse->getFullName());
+							printf(self::SWITCH_LINK, $spouse->getXref(), $this->show_spouse, $this->generations, $spouse->getFullName());
 						}
 						foreach ($family->getChildren() as $child) {
-							printf(self::SWITCH_LINK, $child->getXref(), $this->show_spouse, $this->showFull(), $this->generations, $child->getFullName());
+							printf(self::SWITCH_LINK, $child->getXref(), $this->show_spouse, $this->generations, $child->getFullName());
 						}
 					}
 
@@ -340,11 +339,11 @@ class HourglassController extends ChartController {
 							echo "<span class='name1'>" . I18N::translate('Parents') . '</span>';
 							$husb = $family->getHusband();
 							if ($husb) {
-								printf(self::SWITCH_LINK, $husb->getXref(), $this->show_spouse, $this->showFull(), $this->generations, $husb->getFullName());
+								printf(self::SWITCH_LINK, $husb->getXref(), $this->show_spouse, $this->generations, $husb->getFullName());
 							}
 							$wife = $family->getWife();
 							if ($wife) {
-								printf(self::SWITCH_LINK, $wife->getXref(), $this->show_spouse, $this->showFull(), $this->generations, $wife->getFullName());
+								printf(self::SWITCH_LINK, $wife->getXref(), $this->show_spouse, $this->generations, $wife->getFullName());
 							}
 						}
 
@@ -358,7 +357,7 @@ class HourglassController extends ChartController {
 							echo $num > 1 ? I18N::translate('Siblings') : I18N::translate('Sibling');
 							echo '</span>';
 							foreach ($siblings as $child) {
-								printf(self::SWITCH_LINK, $child->getXref(), $this->show_spouse, $this->showFull(), $this->generations, $child->getFullName());
+								printf(self::SWITCH_LINK, $child->getXref(), $this->show_spouse, $this->generations, $child->getFullName());
 							}
 						}
 					}
@@ -439,7 +438,7 @@ class HourglassController extends ChartController {
 					var self = $(this),
 						parms = self.data('parms').split('-'),
 						id = self.attr('href');
-					jQuery('#td_'+id).load('hourglass_ajax.php?rootid='+ id +'&generations=1&type='+parms[0]+'&show_full='+(parseInt(parms[1]) ? 1:0) +'&show_spouse='+(parseInt(parms[2]) ? 1:0), function(){
+					$('#td_'+id).load('hourglass_ajax.php?rootid='+ id +'&generations=1&type='+parms[0]+'&show_spouse='+(parseInt(parms[1]) ? 1:0), function(){
 						sizeLines();
 					});
 				});

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Bootstrap4;
 use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
@@ -74,10 +75,7 @@ class FamilyTreeStatisticsModule extends AbstractModule implements ModuleBlockIn
 		$stat_most_chil       = $this->getBlockSetting($block_id, 'stat_most_chil', '1');
 		$stat_avg_chil        = $this->getBlockSetting($block_id, 'stat_avg_chil', '1');
 
-		// This can be overriden when embedding in an HTML block
-		$block = '0';
-
-		foreach (['show_common_surnames', 'number_common_surnames', 'stat_indi', 'stat_fam', 'stat_sour', 'stat_media', 'stat_surname', 'stat_events', 'stat_users', 'stat_first_birth', 'stat_last_birth', 'stat_first_death', 'stat_last_death', 'stat_long_life', 'stat_avg_life', 'stat_most_chil', 'stat_avg_chil', 'block'] as $name) {
+		foreach (['show_common_surnames', 'number_common_surnames', 'stat_indi', 'stat_fam', 'stat_sour', 'stat_media', 'stat_surname', 'stat_events', 'stat_users', 'stat_first_birth', 'stat_last_birth', 'stat_first_death', 'stat_last_death', 'stat_long_life', 'stat_avg_life', 'stat_most_chil', 'stat_avg_chil'] as $name) {
 			if (array_key_exists($name, $cfg)) {
 				$$name = $cfg[$name];
 			}
@@ -86,7 +84,7 @@ class FamilyTreeStatisticsModule extends AbstractModule implements ModuleBlockIn
 		$id    = $this->getName() . $block_id;
 		$class = $this->getName() . '_block';
 		if ($ctype === 'gedcom' && Auth::isManager($WT_TREE) || $ctype === 'user' && Auth::check()) {
-			$title = '<a class="icon-admin" title="' . I18N::translate('Preferences') . '" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '"></a>';
+			$title = '<a class="icon-admin" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '">' . I18N::translate('Preferences') . '</a> ';
 		} else {
 			$title = '';
 		}
@@ -135,65 +133,47 @@ class FamilyTreeStatisticsModule extends AbstractModule implements ModuleBlockIn
 			}
 			$content .= '</div></div>';
 		}
-		if (!$block) {
-			$content .= '</div><div class="facts_table stat-table2">';
-		}
+		$content .= '</div><div class="facts_table stat-table2">';
 		if ($stat_first_birth) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Earliest birth year') . '</div><div class="facts_value stats_value stat-cell">' . $stats->firstBirthYear() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->firstBirth() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->firstBirth() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_last_birth) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Latest birth year') . '</div><div class="facts_value stats_value stat-cell">' . $stats->lastBirthYear() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->lastBirth() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->lastBirth() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_first_death) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Earliest death year') . '</div><div class="facts_value stats_value stat-cell">' . $stats->firstDeathYear() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->firstDeath() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->firstDeath() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_last_death) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Latest death year') . '</div><div class="facts_value stats_value stat-cell">' . $stats->lastDeathYear() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->lastDeath() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->lastDeath() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_long_life) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Individual who lived the longest') . '</div><div class="facts_value stats_value stat-cell">' . $stats->longestLifeAge() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->longestLife() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->longestLife() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_avg_life) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Average age at death') . '</div><div class="facts_value stats_value stat-cell">' . $stats->averageLifespan() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . I18N::translate('Males') . ':&nbsp;' . $stats->averageLifespanMale();
-				$content .= '&nbsp;&nbsp;&nbsp;' . I18N::translate('Females') . ':&nbsp;' . $stats->averageLifespanFemale() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . I18N::translate('Males') . ':&nbsp;' . $stats->averageLifespanMale();
+			$content .= '&nbsp;&nbsp;&nbsp;' . I18N::translate('Females') . ':&nbsp;' . $stats->averageLifespanFemale() . '</div>';
 			$content .= '</div>';
 		}
 
-		if ($stat_most_chil && !$block) {
+		if ($stat_most_chil) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Family with the most children') . '</div><div class="facts_value stats_value stat-cell">' . $stats->largestFamilySize() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left">' . $stats->largestFamily() . '</div>';
-			}
+			$content .= '<div class="facts_value stat-cell left">' . $stats->largestFamily() . '</div>';
 			$content .= '</div>';
 		}
 		if ($stat_avg_chil) {
 			$content .= '<div class="stat-row"><div class="facts_label stat-cell">' . I18N::translate('Average number of children per family') . '</div><div class="facts_value stats_value stat-cell">' . $stats->averageChildren() . '</div>';
-			if (!$block) {
-				$content .= '<div class="facts_value stat-cell left"></div>';
-			}
+			$content .= '<div class="facts_value stat-cell left"></div>';
 			$content .= '</div>';
 		}
 		$content .= '</div>';
@@ -290,167 +270,62 @@ class FamilyTreeStatisticsModule extends AbstractModule implements ModuleBlockIn
 		$stat_avg_chil        = $this->getBlockSetting($block_id, 'stat_avg_chil', '1');
 
 		?>
-		<tr>
-			<td class="descriptionbox wrap width33">
-				<label for="show-last-update">
-					<?= /* I18N: label for yes/no option */ I18N::translate('Show date of last update') ?>
-				</label>
-			</td>
-			<td class="optionbox">
-				<input type="checkbox" value="yes" id="show-last-update" name="show_last_update" <?= $show_last_update ? 'checked' : '' ?>>
-			</td>
-		</tr>
-		<tr>
-			<td class="descriptionbox wrap width33">
+		<fieldset class="form-group row">
+			<legend class="col-sm-3 col-form-legend">
+				<?= I18N::translate('Last change') ?>
+			</legend>
+			<div class="col-sm-9">
+				<?= Bootstrap4::checkbox(/* I18N: label for yes/no option */ I18N::translate('Show date of last update'), false, ['name' => 'show_last_update', 'checked' => (bool) $show_last_update]) ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="form-group row">
+			<legend class="col-sm-3 col-form-legend">
 				<?= I18N::translate('Statistics') ?>
-			</td>
-			<td class="optionbox">
-				<table>
-					<tbody>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_indi" <?= $stat_indi ? 'checked' : '' ?>>
-									<?= I18N::translate('Individuals') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_first_birth" <?= $stat_first_birth ? 'checked' : '' ?>>
-									<?= I18N::translate('Earliest birth year') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_surname" <?= $stat_surname ? 'checked' : '' ?>>
-									<?= I18N::translate('Total surnames') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_last_birth" <?= $stat_last_birth ? 'checked' : '' ?>>
-									<?= I18N::translate('Latest birth year') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_fam" <?= $stat_fam ? 'checked' : '' ?>>
-									<?= I18N::translate('Families') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_first_death" <?= $stat_first_death ? 'checked' : '' ?>>
-									<?= I18N::translate('Earliest death year') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_sour" <?= $stat_sour ? 'checked' : '' ?>>
-									<?= I18N::translate('Sources') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_last_death" <?= $stat_last_death ? 'checked' : '' ?>>
-									<?= I18N::translate('Latest death year') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_media" <?= $stat_media ? 'checked' : '' ?>>
-									<?= I18N::translate('Media objects') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_long_life" <?= $stat_long_life ? 'checked' : '' ?>>
-									<?= I18N::translate('Individual who lived the longest') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_repo" <?= $stat_repo ? 'checked' : '' ?>>
-									<?= I18N::translate('Repositories') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_avg_life" <?= $stat_avg_life ? 'checked' : '' ?>>
-									<?= I18N::translate('Average age at death') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_events" <?= $stat_events ? 'checked' : '' ?>>
-									<?= I18N::translate('Total events') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_most_chil" <?= $stat_most_chil ? 'checked' : '' ?>>
-									<?= I18N::translate('Family with the most children') ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_users" <?= $stat_users ? 'checked' : '' ?>>
-									<?= I18N::translate('Total users') ?>
-								</label>
-							</td>
-							<td>
-								<label>
-									<input type="checkbox" value="yes" name="stat_avg_chil" <?= $stat_avg_chil ? 'checked' : '' ?>>
-									<?= I18N::translate('Average number of children per family') ?>
-								</label>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</td>
-		</tr>
-		<tr>
-			<td class="descriptionbox wrap width33">
-				<label for="show-common-surnames">
-					<?= I18N::translate('Most common surnames') ?>
+			</legend>
+			<div class="col-sm-9">
+				<?= Bootstrap4::checkbox(I18N::translate('Individuals'), false, ['name' => 'stat_indi', 'checked' => (bool) $stat_indi]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Total surnames'), false, ['name' => 'stat_surname', 'checked' => (bool) $stat_surname]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Families'), false, ['name' => 'stat_fam', 'checked' => (bool) $stat_fam]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Sources'), false, ['name' => 'stat_sour', 'checked' => (bool) $stat_sour]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Media objects'), false, ['name' => 'stat_media', 'checked' => (bool) $stat_media]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Repositories'), false, ['name' => 'stat_repo', 'checked' => (bool) $stat_repo]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Total events'), false, ['name' => 'stat_events', 'checked' => (bool) $stat_events]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Total users'), false, ['name' => 'stat_users', 'checked' => (bool) $stat_users]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Earliest birth year'), false, ['name' => 'stat_first_birth', 'checked' => (bool) $stat_first_birth]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Latest birth year'), false, ['name' => 'stat_last_birth', 'checked' => (bool) $stat_last_birth]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Earliest death year'), false, ['name' => 'stat_first_death', 'checked' => (bool) $stat_first_death]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Latest death year'), false, ['name' => 'stat_last_death', 'checked' => (bool) $stat_last_death]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Individual who lived the longest'), false, ['name' => 'stat_long_life', 'checked' => (bool) $stat_long_life]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Average age at death'), false, ['name' => 'stat_avg_life', 'checked' => (bool) $stat_avg_life]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Family with the most children'), false, ['name' => 'stat_most_chil', 'checked' => (bool) $stat_most_chil]) ?>
+				<?= Bootstrap4::checkbox(I18N::translate('Average number of children per family'), false, ['name' => 'stat_avg_chil', 'checked' => (bool) $stat_avg_chil]) ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="form-group row">
+			<legend class="col-sm-3 col-form-legend">
+				<label for="show_common_surnames">
+					<?= I18N::translate('Surnames') ?>
 				</label>
-			</td>
-			<td class="optionbox">
-				<input type="checkbox" value="yes" id="show-common-surnames" name="show_common_surnames" <?= $show_common_surnames ? 'checked' : '' ?>>
-			</td>
-		</tr>
-		<tr>
-			<td class="descriptionbox wrap width33">
-				<label for="number-of-surnames">
+			</legend>
+			<div class="col-sm-9">
+				<?= Bootstrap4::checkbox(I18N::translate('Most common surnames'), false, ['name' => 'show_common_surnames', 'checked' => (bool) $show_common_surnames]) ?>
+				<label for="number_of_surnames">
 					<?= /* I18N: ... to show in a list */ I18N::translate('Number of surnames') ?>
+					<input
+						class="form-control"
+						id="number_of_surnames"
+						maxlength="5"
+						name="number_of_surnames"
+						pattern="[1-9][0-9]*"
+						required
+						type="text"
+						value="<?= Filter::escapeHtml($number_of_surnames) ?>"
+					>
 				</label>
-			</td>
-			<td class="optionbox">
-				<input
-					id="number-of-surnames"
-					maxlength="5"
-					name="number_of_surnames"
-					pattern="[1-9][0-9]*"
-					required
-					type="text"
-					value="<?= Filter::escapeHtml($number_of_surnames) ?>"
-				>
-			</td>
-		</tr>
+			</div>
+		</fieldset>
 		<?php
 	}
 }

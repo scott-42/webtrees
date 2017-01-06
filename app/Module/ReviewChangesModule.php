@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Bootstrap4;
 use Fisharebest\Webtrees\Database;
 use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Functions\FunctionsDate;
@@ -56,9 +57,8 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 
 		$sendmail = $this->getBlockSetting($block_id, 'sendmail', '1');
 		$days     = $this->getBlockSetting($block_id, 'days', '1');
-		$block    = $this->getBlockSetting($block_id, 'block', '1');
 
-		foreach (['days', 'sendmail', 'block'] as $name) {
+		foreach (['days', 'sendmail'] as $name) {
 			if (array_key_exists($name, $cfg)) {
 				$$name = $cfg[$name];
 			}
@@ -73,7 +73,7 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 
 		if ($changes === '1' && $sendmail === '1') {
 			// There are pending changes - tell moderators/managers/administrators about them.
-			if (WT_TIMESTAMP - Site::getPreference('LAST_CHANGE_EMAIL') > (60 * 60 * 24 * $days)) {
+			if (WT_TIMESTAMP - (int) Site::getPreference('LAST_CHANGE_EMAIL') > (60 * 60 * 24 * $days)) {
 				// Which users have pending changes?
 				foreach (User::all() as $user) {
 					if ($user->getPreference('contactmethod') !== 'none') {
@@ -100,7 +100,7 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 			$id    = $this->getName() . $block_id;
 			$class = $this->getName() . '_block';
 			if ($ctype === 'user' || Auth::isManager($WT_TREE)) {
-				$title = '<a class="icon-admin" title="' . I18N::translate('Preferences') . '" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '"></a>';
+				$title = '<a class="icon-admin" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '">' . I18N::translate('Preferences') . '</a> ';
 			} else {
 				$title = '';
 			}
@@ -108,7 +108,7 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 
 			$content = '';
 			if (Auth::isModerator($WT_TREE)) {
-				$content .= "<a href=\"#\" onclick=\"window.open('edit_changes.php','_blank', chan_window_specs); return false;\">" . I18N::translate('There are pending changes for you to moderate.') . '</a><br>';
+				$content .= '<a href="edit_changes.php">' . I18N::translate('There are pending changes for you to moderate.') . '</a><br>';
 			}
 			if ($sendmail === '1') {
 				$content .= I18N::translate('Last email reminder was sent ') . FunctionsDate::formatTimestamp(Site::getPreference('LAST_CHANGE_EMAIL')) . '<br>';
@@ -131,15 +131,13 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 			$content .= '</ul>';
 
 			if ($template) {
-				if ($block === '1') {
-					$class .= ' small_inner_block';
-				}
-
 				return Theme::theme()->formatBlock($id, $title, $class, $content);
 			} else {
 				return $content;
 			}
 		}
+
+		return '';
 	}
 
 	/** {@inheritdoc} */
@@ -166,33 +164,33 @@ class ReviewChangesModule extends AbstractModule implements ModuleBlockInterface
 		if (Filter::postBool('save') && Filter::checkCsrf()) {
 			$this->setBlockSetting($block_id, 'days', Filter::postInteger('num', 1, 180, 1));
 			$this->setBlockSetting($block_id, 'sendmail', Filter::postBool('sendmail'));
-			$this->setBlockSetting($block_id, 'block', Filter::postBool('block'));
 		}
 
 		$sendmail = $this->getBlockSetting($block_id, 'sendmail', '1');
 		$days     = $this->getBlockSetting($block_id, 'days', '1');
-		$block    = $this->getBlockSetting($block_id, 'block', '1');
 
 	?>
-	<tr>
-		<td colspan="2">
-			<?php echo I18N::translate('This block will show editors a list of records with pending changes that need to be reviewed by a moderator. It also generates daily emails to moderators whenever pending changes exist.'); ?>
-		</td>
-	</tr>
+	<p>
+		<?= I18N::translate('This block will show editors a list of records with pending changes that need to be reviewed by a moderator. It also generates daily emails to moderators whenever pending changes exist.') ?>
+	</p>
 
+	<fieldset class="form-group row">
+		<legend class="col-sm-3 col-form-legend">
+			<?= /* I18N: Label for a configuration option */ I18N::translate('Send out reminder emails') ?>
+		</legend>
+		<div class="col-sm-9">
+			<?= Bootstrap4::radioButtons('sendmail', FunctionsEdit::optionsNoYes(), $sendmail, true) ?>
+		</div>
+	</fieldset>
+
+	<div class="form-group row">
+		<label class="col-sm-3 col-form-label" for="days">
+			<?= I18N::translate('Reminder email frequency (days)') ?>
+		</label>
+		<div class="col-sm-9">
+			<input class="form-control" type="text" name="days" id="days" value="<?= $days ?>">
+		</div>
+	</div>
 	<?php
-		echo '<tr><td class="descriptionbox wrap width33">';
-		echo /* I18N: Label for a configuration option */ I18N::translate('Send out reminder emails');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::editFieldYesNo('sendmail', $sendmail);
-		echo '<br>';
-		echo I18N::translate('Reminder email frequency (days)') . "&nbsp;<input type='text' name='days' value='" . $days . "' size='2'>";
-		echo '</td></tr>';
-
-		echo '<tr><td class="descriptionbox wrap width33">';
-		echo /* I18N: label for a yes/no option */ I18N::translate('Add a scrollbar when block contents grow');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::editFieldYesNo('block', $block);
-		echo '</td></tr>';
 	}
 }

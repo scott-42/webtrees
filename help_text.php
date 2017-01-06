@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,11 +15,7 @@
  */
 namespace Fisharebest\Webtrees;
 
-define('WT_SCRIPT_NAME', 'help_text.php');
-require './includes/session.php';
-
-$help = Filter::get('help');
-switch ($help) {
+switch ($help_topic) {
 	//////////////////////////////////////////////////////////////////////////////
 	// This is a list of all known gedcom tags. We list them all here so that
 	// xgettext() may find them.
@@ -33,7 +29,7 @@ switch ($help) {
 	//////////////////////////////////////////////////////////////////////////////
 
 case 'DATE':
-	$title = GedcomTag::getLabel('DATE');
+	$title = I18N::translate('Date');
 	$dates = [
 		'1900'                                                       => new Date('1900'),
 		'JAN 1900'                                                   => new Date('JAN 1900'),
@@ -234,14 +230,14 @@ case 'NAME':
 	break;
 
 case 'SURN':
-	$title = GedcomTag::getLabel('SURN');
+	$title = I18N::translate('Surname');
 	$text  = '<p>' .
 		I18N::translate('The <b>surname</b> field contains a name that is used for sorting and grouping. It can be different to the individual’s actual surname which is always taken from the <b>name</b> field. This field can be used to sort surnames with or without a prefix (Gogh / van Gogh) and to group spelling variations or inflections (Kowalski / Kowalska). If an individual needs to be listed under more than one surname, each name should be separated by a comma.') .
 		'</p>';
 	break;
 
 case 'OBJE':
-	$title = GedcomTag::getLabel('OBJE');
+	$title = I18N::translate('Media object');
 	$text  =
 		'<p>' .
 		I18N::translate('A media object is a record in the family tree which contains information about a media file. This information may include a title, a copyright notice, a transcript, privacy restrictions, etc. The media file, such as the photo or video, can be stored locally (on this webserver) or remotely (on a different webserver).') .
@@ -249,7 +245,7 @@ case 'OBJE':
 	break;
 
 case 'PLAC':
-	$title = GedcomTag::getLabel('PLAC');
+	$title = I18N::translate('Place');
 	$text  = I18N::translate('Places should be entered according to the standards for genealogy. In genealogy, places are recorded with the most specific information about the place first and then working up to the least specific place last, using commas to separate the different place levels. The level at which you record the place information should represent the levels of government or church where vital records for that place are kept.<br><br>For example, a place like Salt Lake City would be entered as “Salt Lake City, Salt Lake, Utah, USA”.<br><br>Let’s examine each part of this place. The first part, “Salt Lake City,” is the city or township where the event occurred. In some countries, there may be municipalities or districts inside a city which are important to note. In that case, they should come before the city. The next part, “Salt Lake,” is the county. “Utah” is the state, and “USA” is the country. It is important to note each place because genealogy records are kept by the governments of each level.<br><br>If a level of the place is unknown, you should leave a space between the commas. Suppose, in the example above, you didn’t know the county for Salt Lake City. You should then record it like this: “Salt Lake City, , Utah, USA”. Suppose you only know that an individual was born in Utah. You would enter the information like this: “, , Utah, USA”. <br><br>You can use the <b>Find Place</b> link to help you find places that already exist in the database.');
 	break;
 
@@ -321,7 +317,4 @@ default:
 	$text  = I18N::translate('The help text has not been written for this item.');
 	break;
 }
-// This file is called by a getJSON call so return the data
-// in correct format
-header('Content-Type: application/json');
-echo json_encode(['title' => $title, 'content' => $text]);
+

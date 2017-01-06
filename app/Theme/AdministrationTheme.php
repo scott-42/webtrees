@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -44,7 +44,7 @@ class AdministrationTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string A relative path, such as "themes/foo/"
 	 */
 	public function assetUrl() {
-		return 'themes/_administration/css-1.7.5/';
+		return 'themes/_administration/css-1.8.0/';
 	}
 
 	/**
@@ -65,24 +65,15 @@ class AdministrationTheme extends AbstractTheme implements ThemeInterface {
 	}
 
 	/**
-	 * Create the contents of the <header> tag.
+	 * Add markup to the secondary menu.
 	 *
 	 * @return string
 	 */
-	protected function headerContent() {
+	protected function formatSecondaryMenu() {
 		return
-			$this->accessibilityLinks() .
-			$this->secondaryMenuContainer($this->secondaryMenu());
-	}
-
-	/**
-	 * Allow themes to add extra scripts to the page footer.
-	 *
-	 * @return string
-	 */
-	public function hookFooterExtraJavascript() {
-		return
-			'<script src="' . WT_BOOTSTRAP_JS_URL . '"></script>';
+			'<ul class="nav wt-secondary-menu small text-justify-end">' .
+			implode('', array_map(function (Menu $menu) { return $this->formatSecondaryMenuItem($menu); }, $this->secondaryMenu())) .
+			'</ul>';
 	}
 
 	/**
@@ -101,7 +92,6 @@ class AdministrationTheme extends AbstractTheme implements ThemeInterface {
 			new Menu(/* I18N: Menu entry */ I18N::translate('Website access rules'), 'admin_site_access.php'),
 			new Menu(/* I18N: Menu entry */ I18N::translate('Clean up data folder'), 'admin_site_clean.php'),
 			new Menu(/* I18N: Menu entry */ I18N::translate('Server information'), 'admin_site_info.php'),
-			new Menu(/* I18N: Menu entry */ I18N::translate('README documentation'), 'admin_site_readme.php'),
 		]);
 	}
 
@@ -228,22 +218,17 @@ class AdministrationTheme extends AbstractTheme implements ThemeInterface {
 	protected function primaryMenuContainer(array $menus) {
 		$html = '';
 		foreach ($menus as $menu) {
-			$html .= $menu->bootstrap();
+			$html .= $menu->bootstrap4();
 		}
 
 		return
-			'<nav class="navbar navbar-default">' .
-			'<div class="navbar-header">' .
-			'<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#primary-navbar-collapse">' .
-			'<span class="sr-only">Toggle navigation</span>' .
-			'<span class="icon-bar"></span>' .
-			'<span class="icon-bar"></span>' .
-			'<span class="icon-bar"></span>' .
-			'</button>' .
+			'<nav class="navbar navbar-toggleable-md navbar-light bg-faded" role="navigation">' .
+			'<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">' .
+			'<span class="navbar-toggler-icon"></span>' .
+			'</button> ' .
 			'<a class="navbar-brand" href="admin.php">' . I18N::translate('Control panel') . '</a>' .
-			'</div>' .
 			'<div class="collapse navbar-collapse" id="primary-navbar-collapse">' .
-			'<ul class="nav navbar-nav">' .
+			'<ul class="navbar-nav">' .
 			$html .
 			'</ul>' .
 			'</div>' .
@@ -272,18 +257,7 @@ class AdministrationTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string
 	 */
 	protected function secondaryMenuContainer(array $menus) {
-		return '<div class="clearfix"><ul class="nav nav-pills small pull-right flip" role="menu">' . $this->secondaryMenuContent($menus) . '</ul></div>';
-	}
-
-	/**
-	 * Format the secondary menu.
-	 *
-	 * @param Menu[] $menus
-	 *
-	 * @return string
-	 */
-	protected function secondaryMenuContent(array $menus) {
-		return implode('', array_map(function (Menu $menu) { return $menu->bootstrap(); }, $menus));
+		return '<ul class="nav wt-secondary-menu justify-content-end">' . $this->secondaryMenuContent($menus) . '</ul>';
 	}
 
 	/**

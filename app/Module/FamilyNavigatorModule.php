@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -129,7 +129,7 @@ class FamilyNavigatorModule extends AbstractModule implements ModuleSidebarInter
 			?>
 			<tr>
 				<td class="facts_label">
-					<?= $menu->getMenu() ?>
+					<?= $menu->bootstrap4() ?>
 				</td>
 				<td class="center <?= $controller->getPersonStyle($spouse) ?> nam">
 					<?php if ($spouse->canShow()): ?>
@@ -154,7 +154,7 @@ class FamilyNavigatorModule extends AbstractModule implements ModuleSidebarInter
 			?>
 			<tr>
 				<td class="facts_label">
-					<?= $menu->getMenu() ?>
+					<?= $menu->bootstrap4() ?>
 				</td>
 				<td class="center <?= $controller->getPersonStyle($child) ?> nam">
 					<?php if ($child->canShow()): ?>

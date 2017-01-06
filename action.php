@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,19 +15,14 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Functions\FunctionsImport;
 
-define('WT_SCRIPT_NAME', 'action.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 header('Content-type: text/html; charset=UTF-8');
 
@@ -94,6 +89,58 @@ case 'copy-fact':
 			}
 		}
 	}
+	break;
+
+case 'create-media-object':
+	// Create a note, and return parameters needed by Select2
+	header('Content-type: application/json');
+	$note = Filter::post('note');
+	$gedcom = "0 @new@ OBJE\n1 FILE eek.jpeg";
+	$media_object = $WT_TREE->createRecord($gedcom);
+	echo json_encode(['id' => $media_object->getXref(), 'text' => Select2::mediaObjectValue($media_object)]);
+	break;
+
+case 'create-note-object':
+	// Create a note, and return parameters needed by Select2
+	header('Content-type: application/json');
+	$note        = Filter::post('note');
+	$gedcom      = "0 @new@ NOTE " . str_replace("\n", "\n1 CONT ", $note);
+	$note_object = $WT_TREE->createRecord($gedcom);
+	echo json_encode(['id' => $note_object->getXref(), 'text' => Select2::noteValue($note_object)]);
+	break;
+
+case 'create-repository':
+	// Create a repository, and return parameters needed by Select2
+	header('Content-type: application/json');
+	$repository_name = Filter::post('repository_name');
+	$gedcom = "0 @new@ REPO\n1 NAME " . $repository_name;
+	$repository = $WT_TREE->createRecord($gedcom);
+	echo json_encode(['id' => $repository->getXref(), 'text' => Select2::repositoryValue($repository)]);
+	break;
+
+case 'create-source':
+	// Create a source, and return parameters needed by Select2
+	header('Content-type: application/json');
+	$source_title = Filter::post('source_title');
+	$gedcom       = "0 @new@ SOUR\n1 TITL " . $source_title;
+	$source       = $WT_TREE->createRecord($gedcom);
+	echo json_encode(['id' => $source->getXref(), 'text' => Select2::sourceValue($source)]);
+	break;
+
+case 'create-submitter':
+	// Create a submitter, and return parameters needed by Select2
+	header('Content-type: application/json');
+	$gedcom = '0 @new@ SUBM';
+	$submitter_name = Filter::post('submitter_name', null, '');
+	if ($submitter_name !== '') {
+		$gedcom .= "\n1 NAME " . $submitter_name;
+	}
+	$submitter_address = Filter::post('submitter_address', null, '');
+	if ($submitter_address !== '') {
+		$gedcom .= "\n1 ADDR " . $submitter_address;
+	}
+	$submitter = $WT_TREE->createRecord($gedcom);
+	echo json_encode(['id' => $submitter->getXref(), 'text' => Select2::submitterValue($submitter)]);
 	break;
 
 case 'paste-fact':
@@ -241,7 +288,7 @@ case 'reject-changes':
 case 'theme':
 	// Change the current theme
 	$theme = Filter::post('theme');
-	if (Site::getPreference('ALLOW_USER_THEMES') && array_key_exists($theme, Theme::themeNames())) {
+	if (Site::getPreference('ALLOW_USER_THEMES') === '1' && array_key_exists($theme, Theme::themeNames())) {
 		Session::put('theme_id', $theme);
 		// Remember our selection
 		Auth::user()->setPreference('theme', $theme);

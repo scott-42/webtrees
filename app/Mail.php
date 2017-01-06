@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -103,20 +103,20 @@ class Mail {
 		case 'sendmail':
 			return Swift_SendmailTransport::newInstance();
 		case 'external':
-            $transport = Swift_SmtpTransport::newInstance()
-                ->setHost(Site::getPreference('SMTP_HOST'))
-                ->setPort(Site::getPreference('SMTP_PORT'))
-                ->setLocalDomain(Site::getPreference('SMTP_HELO'));
+			$transport = Swift_SmtpTransport::newInstance()
+				->setHost(Site::getPreference('SMTP_HOST'))
+				->setPort(Site::getPreference('SMTP_PORT'))
+				->setLocalDomain(Site::getPreference('SMTP_HELO'));
 
-            if (Site::getPreference('SMTP_AUTH')) {
-                $transport
-                    ->setUsername(Site::getPreference('SMTP_AUTH_USER'))
-                    ->setPassword(Site::getPreference('SMTP_AUTH_PASS'));
-            }
+			if (Site::getPreference('SMTP_AUTH') === '1') {
+				$transport
+					->setUsername(Site::getPreference('SMTP_AUTH_USER'))
+					->setPassword(Site::getPreference('SMTP_AUTH_PASS'));
+			}
 
-            if (Site::getPreference('SMTP_SSL') !== 'none') {
-                $transport->setEncryption(Site::getPreference('SMTP_SSL'));
-            }
+			if (Site::getPreference('SMTP_SSL') !== 'none') {
+				$transport->setEncryption(Site::getPreference('SMTP_SSL'));
+			}
 
 			return $transport;
 		default:

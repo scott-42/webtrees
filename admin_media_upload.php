@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,19 +15,14 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
+/** @global Tree $WT_TREE */
 global $WT_TREE;
 
 use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\Functions;
 use Fisharebest\Webtrees\Query\QueryMedia;
 
-define('WT_SCRIPT_NAME', 'admin_media_upload.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
 
 $MEDIA_DIRECTORY = $WT_TREE->getPreference('MEDIA_DIRECTORY');
 
@@ -175,23 +170,22 @@ if (empty($filesize)) {
 	$filesize = '2M';
 }
 
+echo Bootstrap4::breadcrumbs([
+	'admin.php' => I18N::translate('Control panel'),
+], $controller->getPageTitle());
 ?>
-<ol class="breadcrumb small">
-	<li><a href="admin.php"><?php echo I18N::translate('Control panel'); ?></a></li>
-	<li class="active"><?php echo $controller->getPageTitle(); ?></li>
-</ol>
 
-<h1><?php echo $controller->getPageTitle(); ?></h1>
+<h1><?= $controller->getPageTitle() ?></h1>
 
 <p>
-	<?php echo I18N::translate('Upload one or more media files from your local computer. Media files can be pictures, video, audio, or other formats.'); ?>
-	<?php echo I18N::translate('Maximum upload size: '), $filesize; ?>
+	<?= I18N::translate('Upload one or more media files from your local computer. Media files can be pictures, video, audio, or other formats.') ?>
+	<?= I18N::translate('Maximum upload size: ') . $filesize ?>
 </p>
 
 <?php
 
 // Print the form
-echo '<form name="uploadmedia" enctype="multipart/form-data" method="post" action="', WT_SCRIPT_NAME, '">';
+echo '<form name="uploadmedia" enctype="multipart/form-data" method="post">';
 echo '<input type="hidden" name="action" value="upload">';
 
 // Print 5 forms for uploading images

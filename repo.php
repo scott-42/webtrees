@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,20 +15,15 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\RepositoryController;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\Functions\FunctionsPrintFacts;
 use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
 
-define('WT_SCRIPT_NAME', 'repo.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $record     = Repository::getInstance(Filter::get('rid', WT_REGEX_XREF), $WT_TREE);
 $controller = new RepositoryController($record);
@@ -65,10 +60,10 @@ if ($controller->record && $controller->record->canShow()) {
 }
 
 $controller->addInlineJavascript('
-	jQuery("#repo-tabs")
+	$("#repo-tabs")
 		.tabs({
 			create: function(e, ui){
-				jQuery(e.target).css("visibility", "visible");  // prevent FOUC
+				$(e.target).css("visibility", "visible");  // prevent FOUC
 			}
 		});
 ');
@@ -105,46 +100,46 @@ usort(
 ?>
 <div id="repo-details">
 	<h2>
-		<?php echo $controller->record->getFullName() ?>
+		<?= $controller->record->getFullName() ?>
 	</h2>
 	<div id="repo-tabs">
 		<ul>
 			<li>
 				<a href="#repo-edit">
-					<?php echo I18N::translate('Details') ?>
+					<?= I18N::translate('Details') ?>
 				</a>
 			</li>
 			<?php if ($linked_indi): ?>
 			<li>
 				<a href="#linked-individuals">
-					<?php echo I18N::translate('Individuals') ?>
+					<?= I18N::translate('Individuals') ?>
 				</a>
 			</li>
-			<?php endif; ?>
+			<?php endif ?>
 			<?php if ($linked_fam): ?>
 			<li>
 				<a href="#linked-families">
-					<?php echo I18N::translate('Families') ?>
+					<?= I18N::translate('Families') ?>
 				</a>
 			</li>
-			<?php endif; ?>
+			<?php endif ?>
 			<?php if ($linked_obje): ?>
 			<li>
 				<a href="#linked-media">
-					<?php echo I18N::translate('Media objects') ?>
+					<?= I18N::translate('Media objects') ?>
 				</a>
 			</li>
-			<?php endif; ?>
+			<?php endif ?>
 			<?php if ($linked_sour): ?>
 			<li>
-				<a href="#linked-sources"><?php echo I18N::translate('Sources') ?></a>
+				<a href="#linked-sources"><?= I18N::translate('Sources') ?></a>
 			</li>
-			<?php endif; ?>
+			<?php endif ?>
 			<?php if ($linked_note): ?>
 			<li>
-				<a href="#linked-notes"><?php echo I18N::translate('Notes') ?></a>
+				<a href="#linked-notes"><?= I18N::translate('Notes') ?></a>
 			</li>
-			<?php endif; ?>
+			<?php endif ?>
 		</ul>
 
 		<div id="repo-edit">
@@ -163,32 +158,32 @@ usort(
 
 		<?php if ($linked_indi): ?>
 			<div id="linked-individuals">
-				<?php echo FunctionsPrintLists::individualTable($linked_indi) ?>
+				<?= FunctionsPrintLists::individualTable($linked_indi) ?>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 
 		<?php if ($linked_fam): ?>
 			<div id="linked-families">
-				<?php echo FunctionsPrintLists::familyTable($linked_fam) ?>
+				<?= FunctionsPrintLists::familyTable($linked_fam) ?>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 
 		<?php if ($linked_obje): ?>
 			<div id="linked-media">
-				<?php echo FunctionsPrintLists::mediaTable($linked_obje) ?>
+				<?= FunctionsPrintLists::mediaTable($linked_obje) ?>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 
 		<?php if ($linked_sour): ?>
 			<div id="linked-sources">
-				<?php echo FunctionsPrintLists::sourceTable($linked_sour) ?>
+				<?= FunctionsPrintLists::sourceTable($linked_sour) ?>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 
 		<?php if ($linked_note): ?>
 			<div id="linked-notes">
-				<?php echo FunctionsPrintLists::noteTable($linked_note) ?>
+				<?= FunctionsPrintLists::noteTable($linked_note) ?>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 	</div>
 </div>

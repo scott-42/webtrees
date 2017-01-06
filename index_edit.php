@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,18 +15,13 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 
-define('WT_SCRIPT_NAME', 'index_edit.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $controller = new PageController;
 
@@ -146,7 +141,9 @@ if ($action === 'update') {
 			}
 		}
 	}
-	if ($user_id) {
+	if ($user_id < 0 || $gedcom_id < 0 ) {
+		header('Location: ' . WT_BASE_URL . 'admin.php');
+	} elseif ($user_id > 0) {
 		header('Location: ' . WT_BASE_URL . 'index.php?ctype=user&ged=' . $WT_TREE->getNameUrl());
 	} else {
 		header('Location: ' . WT_BASE_URL . 'index.php?ctype=gedcom&ged=' . $WT_TREE->getNameUrl());
@@ -285,11 +282,11 @@ $controller
 	);
 ?>
 
-<h2><?php echo $controller->getPageTitle(); ?></h2>
+<h2><?= $controller->getPageTitle() ?></h2>
 
 <form name="config_setup" method="post" action="index_edit.php?action=update" onsubmit="select_options();" >
-	<input type="hidden" name="user_id"   value="<?php echo $user_id; ?>">
-	<input type="hidden" name="gedcom_id" value="<?php echo $gedcom_id; ?>">
+	<input type="hidden" name="user_id"   value="<?= $user_id ?>">
+	<input type="hidden" name="gedcom_id" value="<?= $gedcom_id ?>">
 	<table border="1" id="change_blocks">
 		<tr>
 	<?php
@@ -307,9 +304,9 @@ $controller
 	echo '<tr>';
 	// NOTE: Row 2 column 1: Up/Down buttons for left (main) block list
 	echo '<td class="optionbox center vmiddle">';
-		echo '<a onclick="move_up_block(\'main_select\');" title="', I18N::translate('Move up'), '"class="', $IconUarrow, '"></a>';
+		echo '<a onclick="move_up_block(\'main_select\');" class="', $IconUarrow, '">', I18N::translate('Move up'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_down_block(\'main_select\');" title="', I18N::translate('Move down'), '"class="', $IconDarrow, '"></a>';
+		echo '<a onclick="move_down_block(\'main_select\');" class="', $IconDarrow, '">', I18N::translate('Move down'), '</a>';
 		echo '<br><br>';
 	echo '</td>';
 	// NOTE: Row 2 column 2: Left (Main) block list
@@ -322,11 +319,11 @@ $controller
 	echo '</td>';
 	// NOTE: Row 2 column 3: Left/Right buttons for left (main) block list
 	echo '<td class="optionbox center vmiddle">';
-		echo '<a onclick="move_left_right_block(\'main_select\', \'right_select\');" title="', I18N::translate('Move right'), '"class="', $IconRDarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'main_select\', \'right_select\');" class="', $IconRDarrow, '">', I18N::translate('Move right'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_left_right_block(\'main_select\', \'available_select\');" title="', I18N::translate('Remove'), '"class="', $IconRarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'main_select\', \'available_select\');" class="', $IconRarrow, '">', I18N::translate('Remove'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_left_right_block(\'available_select\', \'main_select\');" title="', I18N::translate('Add'), '"class="', $IconLarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'available_select\', \'main_select\');" class="', $IconLarrow, '">', I18N::translate('Add'), '</a>';
 		echo '<br><br>';
 	echo '</td>';
 	// Row 2 column 4: Middle (Available) block list
@@ -339,11 +336,11 @@ $controller
 	echo '</td>';
 	// NOTE: Row 2 column 5: Left/Right buttons for right block list
 	echo '<td class="optionbox center vmiddle">';
-		echo '<a onclick="move_left_right_block(\'right_select\', \'main_select\');" title="', I18N::translate('Move left'), '"class="', $IconLDarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'right_select\', \'main_select\');" class="', $IconLDarrow, '">', I18N::translate('Move left'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_left_right_block(\'right_select\', \'available_select\');" title="', I18N::translate('Remove'), '"class="', $IconLarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'right_select\', \'available_select\');" class="', $IconLarrow, '">', I18N::translate('Remove'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_left_right_block(\'available_select\', \'right_select\');" title="', I18N::translate('Add'), '"class="', $IconRarrow, '"></a>';
+		echo '<a onclick="move_left_right_block(\'available_select\', \'right_select\');" class="', $IconRarrow, '">', I18N::translate('Add'), '</a>';
 		echo '<br><br>';
 	echo '</td>';
 	// NOTE: Row 2 column 6: Right block list
@@ -356,9 +353,9 @@ $controller
 	echo '</td>';
 	// NOTE: Row 2 column 7: Up/Down buttons for right block list
 	echo '<td class="optionbox center vmiddle">';
-		echo '<a onclick="move_up_block(\'right_select\');" title="', I18N::translate('Move up'), '"class="', $IconUarrow, '"></a>';
+		echo '<a onclick="move_up_block(\'right_select\');" class="', $IconUarrow, '">', I18N::translate('Move up'), '</a>';
 		echo '<br>';
-		echo '<a onclick="move_down_block(\'right_select\');" title="', I18N::translate('Move down'), '"class="', $IconDarrow, '"></a>';
+		echo '<a onclick="move_down_block(\'right_select\');" class="', $IconDarrow, '">', I18N::translate('Move down'), '</a>';
 		echo '<br><br>';
 	echo '</td>';
 	echo '</tr>';

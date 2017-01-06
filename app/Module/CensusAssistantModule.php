@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,6 @@ use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Functions\Functions;
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 use Fisharebest\Webtrees\GedcomRecord;
-use Fisharebest\Webtrees\GedcomTag;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Menu;
@@ -438,7 +437,7 @@ class CensusAssistantModule extends AbstractModule {
 			?>
 			<tr>
 				<td class="optionbox">
-					<?= $menu->getMenu() ?>
+					<?= $menu->bootstrap4() ?>
 				</td>
 				<td class="facts_value nowrap">
 					<a href="#" onclick="return appendCensusRow('<?= Filter::escapeJs(self::censusTableRow($census, $spouse, $head)) ?>');">
@@ -488,7 +487,7 @@ class CensusAssistantModule extends AbstractModule {
 			?>
 			<tr>
 				<td class="optionbox">
-					<?= $menu->getMenu() ?>
+					<?= $menu->bootstrap4() ?>
 				</td>
 				<td class="facts_value">
 					<a href="#" onclick="return appendCensusRow('<?= Filter::escapeJs(self::censusTableRow($census, $child, $head)) ?>');">

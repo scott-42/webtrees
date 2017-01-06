@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -75,10 +75,11 @@ class TimelineController extends PageController {
 
 		$this->baseyear = (int) date('Y');
 
-		$pids   = Filter::getArray('pids', WT_REGEX_XREF);
+		$newpid = Filter::get('newpid', WT_REGEX_XREF);
+		$pids   = Filter::getArray('pids', WT_REGEX_XREF) + [$newpid];
 		$remove = Filter::get('remove', WT_REGEX_XREF);
 
-		foreach (array_unique($pids) as $pid) {
+		foreach (array_unique(array_filter($pids)) as $pid) {
 			if ($pid !== $remove) {
 				$person = Individual::getInstance($pid, $WT_TREE);
 				if ($person && $person->canShow()) {

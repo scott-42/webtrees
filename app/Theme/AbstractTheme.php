@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -53,7 +53,54 @@ use Fisharebest\Webtrees\User;
  * Common functions for all themes.
  */
 abstract class AbstractTheme {
-	/** @var Tree The current tree */
+	// Icons are created using <i class="..."></i>
+	const ICONS = [
+		// Icons for GEDCOM records
+		'family'     => 'fa fa-users',
+		'individual' => 'fa fa-user',
+		'media'      => 'fa fa-file-image-o',
+		'note'       => 'fa fa-sticky-note-o',
+		'repository' => 'fa fa-institution',
+		'source'     => 'fa fa-file-text-o',
+		'submission' => 'fa fa-upload',
+		'submitter'  => 'fa fa-user-plus',
+
+		// Icons for sexes
+		'F' => 'fa fa-venus',
+		'M' => 'fa fa-mars',
+		'U' => 'fa fa-genderless',
+
+		// Icons for editing
+		'add'    => 'fa fa-plus',
+		'config' => 'fa fa-cogs',
+		'create' => 'fa fa-plus',
+		'delete' => 'fa fa-trash',
+		'edit'   => 'fa fa-pencil',
+		'link'   => 'fa fa-link',
+		'unlink' => 'fa fa-unlink',
+
+		// Icons for arrows
+		'arrow-down'  => 'fa fa-arrow-down',
+		'arrow-left'  => 'fa fa-arrow-left',
+		'arrow-right' => 'fa fa-arrow-right',
+		'arrow-up'    => 'fa fa-arrow-up',
+
+		// Status icons
+		'error'   => 'fa fa-exclamation-triangle',
+		'info'    => 'fa fa-info-circle',
+		'warning' => 'fa fa-exclamation-circle',
+
+	  // Icons for file types
+	  'mime-application-pdf' => '',
+	  'mime-text-html'       => '',
+
+		// Other icons
+		'mail'    => 'fa fa-envelope-o',
+		'help'    => 'fa fa-info-circle',
+		'search'  => 'fa fa-search',
+	];
+
+	/** @var Tree */
 	protected $tree;
 
 	/** @var string An escaped version of the "ged=XXX" URL parameter */
@@ -79,7 +126,7 @@ abstract class AbstractTheme {
 	 */
 	protected function accessibilityLinks() {
 		return
-			'<div class="accessibility-links">' .
+			'<div class="wt-accessibility-links">' .
 			'<a class="sr-only sr-only-focusable btn btn-info btn-sm" href="#content">' .
 			/* I18N: Skip over the headers and menus, to the main content of the page */ I18N::translate('Skip to content') .
 			'</a>' .
@@ -227,30 +274,29 @@ abstract class AbstractTheme {
 	}
 
 	/**
+	 * Where are our CSS, JS and other assets?
+	 *
+	 * @return string A relative path, such as "themes/foo/"
+	 */
+	public function assetUrl() {
+		return 'themes/_common/css-1.8.0/';
+	}
+
+	/**
 	 * Create the top of the <body>.
 	 *
 	 * @return string
 	 */
 	public function bodyHeader() {
 		return
-			'<body class="container">' .
-			'<header>' .
+			'<body class="wt-global">' .
+			'<header class="wt-header-container">' .
+			'<div class="wt-header-content container">' .
 			$this->headerContent() .
-			$this->primaryMenuContainer($this->primaryMenu()) .
+			'</div>' .
 			'</header>' .
-			'<main id="content">' .
-			$this->flashMessagesContainer(FlashMessages::getMessages());
-	}
-
-	/**
-	 * Create the top of the <body> (for popup windows).
-	 *
-	 * @return string
-	 */
-	public function bodyHeaderPopupWindow() {
-		return
-			'<body class="container container-popup">' .
-			'<main id="content">' .
+			'<main id="content" class="wt-main-container">' .
+		'<div class="wt-main-content container">' .
 			$this->flashMessagesContainer(FlashMessages::getMessages());
 	}
 
@@ -270,7 +316,7 @@ abstract class AbstractTheme {
 		case 'mailto':
 			return '<a href="mailto:' . Filter::escapeHtml($user->getEmail()) . '">' . $user->getRealNameHtml() . '</a>';
 		default:
-			return "<a href='#' onclick='message(\"" . Filter::escapeHtml($user->getUserName()) . '", "' . $method . '", "' . WT_BASE_URL . Filter::escapeHtml(Functions::getQueryUrl()) . "\", \"\");return false;'>" . $user->getRealNameHtml() . '</a>';
+			return '<a href="message.php?to=' . Filter::escapeUrl($user->getUserName()) . '&amp;ged=' . $this->tree->getNameUrl() . '&amp;url=' . Filter::escapeHtml(Functions::getQueryUrl()) . '">' . $user->getRealNameHtml() . '</a>';
 		}
 	}
 
@@ -338,10 +384,10 @@ abstract class AbstractTheme {
 		if (
 			empty($_SERVER['HTTP_DNT']) &&
 			empty($_COOKIE['cookie']) &&
-			(Site::getPreference('GOOGLE_ANALYTICS_ID') || Site::getPreference('PIWIK_SITE_ID') || Site::getPreference('STATCOUNTER_PROJECT_ID'))
+			(Site::getPreference('GOOGLE_ANALYTICS_ID') === '1' || Site::getPreference('PIWIK_SITE_ID') === '1' || Site::getPreference('STATCOUNTER_PROJECT_ID') === '1')
 		) {
 			return
-				'<div class="cookie-warning">' .
+				'<div class="wt-cookie-warning">' .
 				I18N::translate('Cookies') . ' - ' .
 				I18N::translate('This website uses cookies to learn about visitor behaviour.') . ' ' .
 				'<button onclick="document.cookie=\'cookie=1\'; this.parentNode.classList.add(\'hidden\');">' . I18N::translate('continue') . '</button>' .
@@ -411,17 +457,12 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	public function footerContainer() {
-		return '</main><footer>' . $this->footerContent() . '</footer>';
-	}
-
-	/**
-	 * Close the main content.
-	 * Note that popup windows are deprecated
-	 *
-	 * @return string
-	 */
-	public function footerContainerPopupWindow() {
-		return '</main>';
+		return
+			'</main>' .
+			'</div>' .
+			'<footer class="wt-footer-container">' .
+			'<div class="wt-footer-content container">' . $this->footerContent() . '</div>' .
+			'</footer>';
 	}
 
 	/**
@@ -449,9 +490,9 @@ abstract class AbstractTheme {
 	 */
 	public function formatBlock($id, $title, $class, $content) {
 		return
-			'<div id="' . $id . '" class="block" >' .
-			'<div class="blockheader">' . $title . '</div>' .
-			'<div class="blockcontent ' . $class . '">' . $content . '</div>' .
+			'<div class="card ' . $class . ' mb-4" id="' . $id . '">' .
+			'<div class="card-header">' . $title . '</div>' .
+			'<div class="card-block">' . $content . '</div>' .
 			'</div>';
 	}
 
@@ -462,7 +503,7 @@ abstract class AbstractTheme {
 	 */
 	protected function formatContactLinks() {
 		if ($this->tree) {
-			return '<div class="contact-links">' . $this->contactLinks() . '</div>';
+			return '<div class="wt-contact-links">' . $this->contactLinks() . '</div>';
 		} else {
 			return '';
 		}
@@ -478,7 +519,7 @@ abstract class AbstractTheme {
 	protected function formatPageViews($count) {
 		if ($count > 0) {
 			return
-				'<div class="page-views">' .
+				'<div class="wt-page-views">' .
 				I18N::plural('This page has been viewed %s time.', 'This page has been viewed %s times.', $count,
 					'<span class="odometer">' . I18N::digits($count) . '</span>') .
 				'</div>';
@@ -508,7 +549,7 @@ abstract class AbstractTheme {
 	protected function formQuickSearch() {
 		if ($this->tree) {
 			return
-				'<form action="search.php" class="header-search" role="search">' .
+				'<form action="search.php" class="wt-header-search" role="search">' .
 				'<input type="hidden" name="action" value="header">' .
 				'<input type="hidden" name="ged" value="' . $this->tree->getNameHtml() . '">' .
 				$this->formQuickSearchFields() .
@@ -525,8 +566,13 @@ abstract class AbstractTheme {
 	 */
 	protected function formQuickSearchFields() {
 		return
-			'<input type="search" name="query" size="15" placeholder="' . I18N::translate('Search') . '">' .
-			'<input type="image" src="' . $this->assetUrl() . 'images/go.png" alt="' . I18N::translate('Search') . '">';
+			'<div class="input-group">' .
+			'<label class="sr-only" for="quick-search">' . I18N::translate('Search') . '</label>' .
+			'<input type="search" class="form-control form-control-sm" id="quick-search" name="query" size="15" placeholder="' . I18N::translate('Search') . '">' .
+			'<span class="input-group-btn">' .
+			'<button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>' .
+			'</span>' .
+			'</div>';
 	}
 
 	/**
@@ -536,7 +582,7 @@ abstract class AbstractTheme {
 	 */
 	protected function formatTreeTitle() {
 		if ($this->tree) {
-			return '<h1 class="header-title">' . $this->tree->getTitleHtml() . '</h1>';
+			return '<h1 class="wt-site-title">' . $this->tree->getTitleHtml() . '</h1>';
 		} else {
 			return '';
 		}
@@ -549,8 +595,8 @@ abstract class AbstractTheme {
 	 */
 	protected function formatSecondaryMenu() {
 		return
-			'<ul class="secondary-menu">' .
-			implode('', $this->secondaryMenu()) .
+			'<ul class="nav wt-secondary-menu">' .
+			implode('', array_map(function (Menu $menu) { return $this->formatSecondaryMenuItem($menu); }, $this->secondaryMenu())) .
 			'</ul>';
 	}
 
@@ -562,7 +608,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function formatSecondaryMenuItem(Menu $menu) {
-		return $menu->getMenuAsList();
+		return $menu->bootstrap4();
 	}
 
 	/**
@@ -601,15 +647,12 @@ abstract class AbstractTheme {
 		}
 
 		$html =
-			// modernizr.js and respond.js need to be loaded before the <body> to avoid FOUC
-			'<!--[if IE 8]><script src="' . WT_MODERNIZR_JS_URL . '"></script><![endif]-->' .
-			'<!--[if IE 8]><script src="' . WT_RESPOND_JS_URL . '"></script><![endif]-->' .
 			$this->metaCharset() .
+			$this->metaCsrf() .
 			$this->title($title) .
 			$this->favicon() .
 			$this->metaViewport() .
 			$this->metaRobots($controller->getMetaRobots()) .
-			$this->metaUaCompatible() .
 			$this->metaGenerator(WT_WEBTREES . ' ' . WT_VERSION . ' - ' . WT_WEBTREES_URL);
 
 		if ($this->tree) {
@@ -631,22 +674,12 @@ abstract class AbstractTheme {
 	 */
 	protected function headerContent() {
 		return
-			//$this->accessibilityLinks() .
+			$this->accessibilityLinks() .
 			$this->logoHeader() .
-			$this->secondaryMenuContainer($this->secondaryMenu()) .
 			$this->formatTreeTitle() .
-			$this->formQuickSearch();
-	}
-
-	/**
-	 * Create the <header> tag for a popup window.
-	 *
-	 * @return string
-	 */
-	protected function headerSimple() {
-		return
-			$this->flashMessagesContainer(FlashMessages::getMessages()) .
-			'<div id="content">';
+			$this->formQuickSearch() .
+			$this->secondaryMenuContainer($this->secondaryMenu()) .
+			$this->primaryMenuContainer($this->primaryMenu());
 	}
 
 	/**
@@ -731,6 +764,37 @@ abstract class AbstractTheme {
 	}
 
 	/**
+	 * Decorative icons are used in addition to text.
+	 * They need additional markup to hide them from assistive technologies.
+	 *
+	 * Semantic icons are used in place of text.
+	 * They need additional markup to convey their meaning to assistive technologies.
+	 *
+	 * @link http://fontawesome.io/accessibility
+	 *
+	 * @param string $icon
+	 * @param string $text
+	 *
+	 * @return string
+	 */
+	public function replacementIconFunction($icon, $text = '') {
+		if (array_key_exists($icon, self::ICONS)) {
+			if ($text === '') {
+				// Decorative icon.  Hiden from assistive technology.
+				return '<i class="' . self::ICONS[$icon] . '" aria-hidden="true"></i>';
+			} else {
+				// Semantic icon.  Label for assistive technology.
+				return
+					'<i class="' . self::ICONS[$icon] . '" title="' . $text . '"></i>' .
+					'<span class="sr-only">' . $text . '</span>';
+			}
+		} else {
+			return $text;
+		}
+	}
+
+
+	/**
 	 * Display an individual in a box - for charts, etc.
 	 *
 	 * @param Individual $individual
@@ -752,10 +816,10 @@ abstract class AbstractTheme {
 				'<a href="' . $individual->getHtmlUrl() . '">' . $content . '</a>' .
 				'<div class="namedef name1">' . $individual->getAddName() . '</div>';
 			$icons   =
-				'<div class="noprint icons">' .
+				'<div class="icons">' .
 				'<span class="iconz icon-zoomin" title="' . I18N::translate('Zoom in/out on this box.') . '"></span>' .
 				'<div class="itr"><i class="icon-pedigree"></i><div class="popup">' .
-				'<ul class="' . $personBoxClass . '">' . implode('', $this->individualBoxMenu($individual)) . '</ul>' .
+				'<ul class="' . $personBoxClass . '">' . implode('', array_map(function(Menu $menu) { return $menu->bootstrap4(); }, $this->individualBoxMenu($individual))) . '</ul>' .
 				'</div>' .
 				'</div>' .
 				'</div>';
@@ -804,10 +868,10 @@ abstract class AbstractTheme {
 				'<a href="' . $individual->getHtmlUrl() . '">' . $content . '</a>' .
 				'<div class="namedef name2">' . $individual->getAddName() . '</div>';
 			$icons   =
-				'<div class="noprint icons">' .
+				'<div class="icons">' .
 				'<span class="iconz icon-zoomin" title="' . I18N::translate('Zoom in/out on this box.') . '"></span>' .
 				'<div class="itr"><i class="icon-pedigree"></i><div class="popup">' .
-				'<ul class="' . $personBoxClass . '">' . implode('', $this->individualBoxMenu($individual)) . '</ul>' .
+				'<ul class="' . $personBoxClass . '">' . implode('', array_map(function(Menu $menu) { return $menu->bootstrap4(); }, $this->individualBoxMenu($individual))) . '</ul>' .
 				'</div>' .
 				'</div>' .
 				'</div>';
@@ -1040,7 +1104,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function logoHeader() {
-		return '<div class="header-logo"></div>';
+		return '<div class="wt-site-logo"></div>';
 	}
 
 	/**
@@ -1049,7 +1113,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function logoPoweredBy() {
-		return '<a href="' . WT_WEBTREES_URL . '" class="powered-by-webtrees" title="' . WT_WEBTREES_URL . '"></a>';
+		return '<a href="' . WT_WEBTREES_URL . '" class="wt-powered-by-webtrees" title="' . WT_WEBTREES_URL . '" dir="ltr">' . WT_WEBTREES_URL . '</a>';
 	}
 
 	/**
@@ -1099,14 +1163,14 @@ abstract class AbstractTheme {
 			}
 		}
 
-		if ($submenus) {
+		if (empty($submenus)) {
+			return null;
+		} else {
 			usort($submenus, function (Menu $x, Menu $y) {
 				return I18N::strcasecmp($x->getLabel(), $y->getLabel());
 			});
 
 			return new Menu(I18N::translate('Charts'), '#', 'menu-chart', ['rel' => 'nofollow'], $submenus);
-		} else {
-			return null;
 		}
 	}
 
@@ -1382,7 +1446,7 @@ abstract class AbstractTheme {
 	 * @return Menu
 	 */
 	protected function menuHomePage() {
-		if (count(Tree::getAll()) === 1 || Site::getPreference('ALLOW_CHANGE_GEDCOM') === '0') {
+		if (count(Tree::getAll()) === 1 || Site::getPreference('ALLOW_CHANGE_GEDCOM') !== '1') {
 			return new Menu(I18N::translate('Family tree'), 'index.php?ctype=gedcom&amp;' . $this->tree_url, 'menu-tree');
 		} else {
 			$submenus = [];
@@ -1655,12 +1719,11 @@ abstract class AbstractTheme {
 		$gedcomid = $this->tree->getUserPreference(Auth::user(), 'gedcomid');
 
 		if ($gedcomid && Module::isActiveChart($this->tree, 'pedigree_chart')) {
-			$showFull   = $this->tree->getPreference('PEDIGREE_FULL_DETAILS') ? 1 : 0;
 			$showLayout = $this->tree->getPreference('PEDIGREE_LAYOUT') ? 1 : 0;
 
 			return new Menu(
 				I18N::translate('My pedigree'),
-				'pedigree.php?' . $this->tree_url . '&amp;rootid=' . $gedcomid . '&amp;show_full=' . $showFull . '&amp;talloffset=' . $showLayout,
+				'pedigree.php?' . $this->tree_url . '&amp;rootid=' . $gedcomid . '&amp;talloffset=' . $showLayout,
 				'menu-mypedigree'
 			);
 		} else {
@@ -1675,7 +1738,7 @@ abstract class AbstractTheme {
 	 */
 	protected function menuPendingChanges() {
 		if ($this->pendingChangesExist()) {
-			$menu = new Menu(I18N::translate('Pending changes'), '#', 'menu-pending', ['onclick' => 'window.open("edit_changes.php", "_blank", chan_window_specs); return false;']);
+			$menu = new Menu(I18N::translate('Pending changes'), 'edit_changes.php', 'menu-pending');
 
 			return $menu;
 		} else {
@@ -1694,10 +1757,10 @@ abstract class AbstractTheme {
 			$submenus[] = $report->getReportMenu();
 		}
 
-		if ($submenus) {
-			return new Menu(I18N::translate('Reports'), '#', 'menu-report', ['rel' => 'nofollow'], $submenus);
-		} else {
+		if (empty($submenus)) {
 			return null;
+		} else {
+			return new Menu(I18N::translate('Reports'), '#', 'menu-report', ['rel' => 'nofollow'], $submenus);
 		}
 	}
 
@@ -1761,7 +1824,7 @@ abstract class AbstractTheme {
 	 * @return Menu|null
 	 */
 	public function menuThemes() {
-		if ($this->tree && Site::getPreference('ALLOW_USER_THEMES') && $this->tree->getPreference('ALLOW_THEME_DROPDOWN')) {
+		if ($this->tree !== null && Site::getPreference('ALLOW_USER_THEMES') === '1' && $this->tree->getPreference('ALLOW_THEME_DROPDOWN') === '1') {
 			$submenus = [];
 			foreach (Theme::installedThemes() as $theme) {
 				$class      = 'menu-theme-' . $theme->themeId() . ($theme === $this ? ' active' : '');
@@ -1790,6 +1853,15 @@ abstract class AbstractTheme {
 	 */
 	protected function metaCharset() {
 		return '<meta charset="UTF-8">';
+	}
+
+	/**
+	 * Make the CSRF token available to Javascript.
+	 *
+	 * @return string
+	 */
+	protected function metaCsrf() {
+		return '<meta name="csrf" content="' . Filter::escapeHtml(Filter::getCsrfToken()) . '">';
 	}
 
 	/**
@@ -1835,15 +1907,6 @@ abstract class AbstractTheme {
 		} else {
 			return '';
 		}
-	}
-
-	/**
-	 * Create the <meta http-equiv="X-UA-Compatible"> tag.
-	 *
-	 * @return string
-	 */
-	protected function metaUaCompatible() {
-		return '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
 	}
 
 	/**
@@ -1946,10 +2009,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function pendingChangesLink() {
-		return
-			'<a href="#" onclick="window.open(\'edit_changes.php\', \'_blank\', chan_window_specs); return false;">' .
-			$this->pendingChangesLinkText() .
-			'</a>';
+		return '<a href="edit_changes.php">' . $this->pendingChangesLinkText() . '</a>';
 	}
 
 	/**
@@ -1994,7 +2054,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function primaryMenuContainer(array $menus) {
-		return '<nav><ul class="primary-menu">' . $this->primaryMenuContent($menus) . '</ul></nav>';
+		return '<nav role="navigation" class="wt-primary-navigation"><ul class="nav wt-primary-menu">' . $this->primaryMenuContent($menus) . '</ul></nav>';
 	}
 
 	/**
@@ -2006,7 +2066,7 @@ abstract class AbstractTheme {
 	 */
 	protected function primaryMenuContent(array $menus) {
 		return implode('', array_map(function (Menu $menu) {
-			return $menu->getMenuAsList();
+			return $menu->bootstrap4();
 		}, $menus));
 	}
 
@@ -2035,7 +2095,7 @@ abstract class AbstractTheme {
 	 * @return string
 	 */
 	protected function secondaryMenuContainer(array $menus) {
-		return '<ul class="nav nav-pills secondary-menu">' . $this->secondaryMenuContent($menus) . '</ul>';
+		return '<div class="wt-secondary-navigation"><ul class="nav wt-secondary-menu">' . $this->secondaryMenuContent($menus) . '</ul></div>';
 	}
 
 	/**
@@ -2047,7 +2107,7 @@ abstract class AbstractTheme {
 	 */
 	protected function secondaryMenuContent(array $menus) {
 		return implode('', array_map(function (Menu $menu) {
-			return $menu->getMenuAsList();
+			return $menu->bootstrap4();
 		}, $menus));
 	}
 
@@ -2068,6 +2128,10 @@ abstract class AbstractTheme {
 			WT_BOOTSTRAP_CSS_URL,
 			WT_FONT_AWESOME_CSS_URL,
 			WT_FONT_AWESOME_RTL_CSS_URL,
+			WT_DATATABLES_BOOTSTRAP_CSS_URL,
+			WT_SELECT2_CSS_URL,
+			'themes/_common/css-1.8.0/style.css',
+			$this->assetUrl() . 'style.css',
 		];
 
 		if (I18N::direction() === 'rtl') {
@@ -2076,6 +2140,20 @@ abstract class AbstractTheme {
 
 		return $stylesheets;
 	}
+
+	/**
+	 * A fixed string to identify this theme, in settings, etc.
+	 *
+	 * @return string
+	 */
+	abstract public function themeId();
+
+	/**
+	 * What is this theme called?
+	 *
+	 * @return string
+	 */
+	abstract public function themeName();
 
 	/**
 	 * Create the <title> tag.

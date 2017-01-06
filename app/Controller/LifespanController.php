@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -517,20 +517,5 @@ class LifespanController extends PageController {
 		}
 
 		return $caldate;
-	}
-
-	/**
-	 * Function getCalendarOptionList
-	 *
-	 * @return string
-	 */
-	public function getCalendarOptionList() {
-		$html = '';
-		foreach (Date::calendarNames() as $calendar => $name) {
-			$selected = $this->calendar === $calendar ? 'selected' : '';
-			$html .= sprintf('<option dir="auto" value="%s" %s>%s</option>', $calendar, $selected, $name);
-		}
-
-		return $html;
 	}
 }

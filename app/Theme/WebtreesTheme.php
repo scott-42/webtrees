@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,47 +16,18 @@
 namespace Fisharebest\Webtrees\Theme;
 
 use Fisharebest\Webtrees\I18N;
-use Fisharebest\Webtrees\Theme;
 
 /**
  * The webtrees (default) theme.
  */
-class WebtreesTheme extends AbstractTheme implements ThemeInterface {
+class WebtreesTheme extends MinimalTheme {
 	/**
 	 * Where are our CSS, JS and other assets?
 	 *
 	 * @return string A relative path, such as "themes/foo/"
 	 */
 	public function assetUrl() {
-		return 'themes/webtrees/css-1.7.8/';
-	}
-
-	/**
-	 * Add markup to a flash message.
-	 *
-	 * @param \stdClass $message
-	 *
-	 * @return string
-	 */
-	protected function flashMessageContainer(\stdClass $message) {
-		// This theme uses jQueryUI markup.
-		switch ($message->status) {
-		case 'danger':
-			return '<p class="ui-state-error">' . $message->text . '</p>';
-		default:
-			return '<p class="ui-state-highlight">' . $message->text . '</p>';
-		}
-	}
-
-	/**
-	 * Create a search field and submit button for the quick search form in the header.
-	 *
-	 * @return string
-	 */
-	protected function formQuickSearchFields() {
-		return
-			'<input type="search" name="query" size="25" placeholder="' . I18N::translate('Search') . '">' .
-			'<input type="image" class="image" src="' . $this->assetUrl() . 'images/search.png" alt="' . I18N::translate('Search') . '" title="' . I18N::translate('Search') . '">';
+		return 'themes/webtrees/css-1.8.0/';
 	}
 
 	/**
@@ -76,7 +47,7 @@ class WebtreesTheme extends AbstractTheme implements ThemeInterface {
 			' transition:"none",' .
 			' slideshowStart:"' . I18N::translate('Play') . '",' .
 			' slideshowStop:"' . I18N::translate('Stop') . '",' .
-			' title: function() { return jQuery(this).data("title"); }' .
+			' title: function() { return $(this).data("title"); }' .
 			'});' .
 			'</script>';
 	}
@@ -109,8 +80,7 @@ class WebtreesTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string[]
 	 */
 	protected function stylesheets() {
-		return [
-			'themes/webtrees/jquery-ui-1.11.2/jquery-ui.css',
+		return parent::stylesheets() + [
 			$this->assetUrl() . 'style.css',
 		];
 	}

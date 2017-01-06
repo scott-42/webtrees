@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -53,7 +53,7 @@ class TreeView {
 		$html = '
 			<a name="tv_content"></a>
 			<div id="' . $this->name . '_out" class="tv_out">
-				<div id="tv_tools" class="noprint">
+				<div id="tv_tools">
 					<ul>
 						<li id="tvbCompact" class="tv_button">
 							<img src="' . WT_STATIC_URL . WT_MODULES_DIR . 'tree/images/compact.png" alt="' . I18N::translate('Use compact layout') . '" title="' . I18N::translate('Use compact layout') . '">

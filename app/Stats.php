@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,7 +25,6 @@ use Fisharebest\Webtrees\Module\UserFavoritesModule;
 use Fisharebest\Webtrees\Query\QueryName;
 use PDO;
 use PDOException;
-use Rhumsaa\Uuid\Uuid;
 
 /**
  * A selection of pre-formatted statistical queries.
@@ -5539,7 +5538,7 @@ class Stats {
 			}
 			switch ($type) {
 			case 'table':
-				$common[] = '<tr><td>' . $given . '</td><td>' . I18N::number($total) . '</td><td>' . $total . '</td></tr>';
+				$common[] = '<tr><td>' . $given . '</td><td data-sort="' . $total . '">' . I18N::number($total) . '</td></tr>';
 				break;
 			case 'list':
 				$common[] = '<li><span dir="auto">' . $given . '</span>' . $tot . '</li>';
@@ -5552,31 +5551,9 @@ class Stats {
 		if ($common) {
 			switch ($type) {
 			case 'table':
-				global $controller;
-				$table_id = Uuid::uuid4(); // lists requires a unique ID in case there are multiple lists per page
-				$controller
-					->addExternalJavascript(WT_JQUERY_DATATABLES_JS_URL)
-					->addInlineJavascript('
-					jQuery("#' . $table_id . '").dataTable({
-						dom: \'t\',
-						autoWidth: false,
-						paging: false,
-						lengthChange: false,
-						filter: false,
-						info: false,
-						jQueryUI: true,
-						sorting: [[1,"desc"]],
-						columns: [
-							/* 0-name */ {},
-							/* 1-count */ { class: "center", dataSort: 2},
-							/* 2-COUNT */ { visible: false}
-						]
-					});
-					jQuery("#' . $table_id . '").css("visibility", "visible");
-				');
 				$lookup = ['M' => I18N::translate('Male'), 'F' => I18N::translate('Female'), 'U' => I18N::translateContext('unknown gender', 'Unknown'), 'B' => I18N::translate('All')];
 
-				return '<table id="' . $table_id . '" class="givn-list"><thead><tr><th class="ui-state-default" colspan="3">' . $lookup[$sex] . '</th></tr><tr><th>' . I18N::translate('Name') . '</th><th>' . I18N::translate('Count') . '</th><th>COUNT</th></tr></thead><tbody>' . implode('', $common) . '</tbody></table>';
+				return '<table ' . Datatables::givenNameTableAttributes() . '><thead><tr><th class="ui-state-default" colspan="3">' . $lookup[$sex] . '</th></tr><tr><th>' . I18N::translate('Name') . '</th><th>' . I18N::translate('Individuals') . '</th></tr></thead><tbody>' . implode('', $common) . '</tbody></table>';
 			case 'list':
 				return '<ul>' . implode('', $common) . '</ul>';
 			case 'nolist':

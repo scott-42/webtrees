@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 namespace Fisharebest\Webtrees\Module;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Bootstrap4;
 use Fisharebest\Webtrees\Database;
 use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
@@ -57,10 +58,8 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 		$infoStyle  = $this->getBlockSetting($block_id, 'infoStyle', self::DEFAULT_INFO_STYLE);
 		$sortStyle  = $this->getBlockSetting($block_id, 'sortStyle', self::DEFAULT_SORT_STYLE);
 		$show_user  = $this->getBlockSetting($block_id, 'show_user', self::DEFAULT_SHOW_USER);
-		$block      = $this->getBlockSetting($block_id, 'block', self::DEFAULT_BLOCK);
-		$hide_empty = $this->getBlockSetting($block_id, 'hide_empty', self::DEFAULT_HIDE_EMPTY);
 
-		foreach (['days', 'infoStyle', 'sortStyle', 'hide_empty', 'show_user', 'block'] as $name) {
+		foreach (['days', 'infoStyle', 'sortStyle', 'show_user'] as $name) {
 			if (array_key_exists($name, $cfg)) {
 				$$name = $cfg[$name];
 			}
@@ -68,16 +67,12 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 
 		$records = $this->getRecentChanges($WT_TREE, WT_CLIENT_JD - $days);
 
-		if (empty($records) && $hide_empty) {
-			return '';
-		}
-
 		// Print block header
 		$id    = $this->getName() . $block_id;
 		$class = $this->getName() . '_block';
 
 		if ($ctype === 'gedcom' && Auth::isManager($WT_TREE) || $ctype === 'user' && Auth::check()) {
-			$title = '<a class="icon-admin" title="' . I18N::translate('Preferences') . '" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '"></a>';
+			$title = '<a class="icon-admin" href="block_edit.php?block_id=' . $block_id . '&amp;ged=' . $WT_TREE->getNameHtml() . '&amp;ctype=' . $ctype . '">' . I18N::translate('Preferences') . '</a> ';
 		} else {
 			$title = '';
 		}
@@ -99,10 +94,6 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 		}
 
 		if ($template) {
-			if ($block === '1') {
-				$class .= ' small_inner_block';
-			}
-
 			return Theme::theme()->formatBlock($id, $title, $class, $content);
 		} else {
 			return $content;
@@ -131,60 +122,41 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 			$this->setBlockSetting($block_id, 'infoStyle', Filter::post('infoStyle', 'list|table'));
 			$this->setBlockSetting($block_id, 'sortStyle', Filter::post('sortStyle', 'name|date_asc|date_desc'));
 			$this->setBlockSetting($block_id, 'show_user', Filter::postBool('show_user'));
-			$this->setBlockSetting($block_id, 'hide_empty', Filter::postBool('hide_empty'));
-			$this->setBlockSetting($block_id, 'block', Filter::postBool('block'));
 		}
 
 		$days       = $this->getBlockSetting($block_id, 'days', self::DEFAULT_DAYS);
 		$infoStyle  = $this->getBlockSetting($block_id, 'infoStyle', self::DEFAULT_INFO_STYLE);
 		$sortStyle  = $this->getBlockSetting($block_id, 'sortStyle', self::DEFAULT_SORT_STYLE);
 		$show_user  = $this->getBlockSetting($block_id, 'show_user', self::DEFAULT_SHOW_USER);
-		$block      = $this->getBlockSetting($block_id, 'block', self::DEFAULT_BLOCK);
-		$hide_empty = $this->getBlockSetting($block_id, 'hide_empty', self::DEFAULT_HIDE_EMPTY);
 
-		echo '<tr><td class="descriptionbox wrap width33">';
+		echo '<div class="form-group row"><label class="col-sm-3 col-form-label" for="days">';
 		echo I18N::translate('Number of days to show');
-		echo '</td><td class="optionbox">';
+		echo '</div><div class="col-sm-9">';
 		echo '<input type="text" name="days" size="2" value="', $days, '">';
-		echo ' <em>', I18N::plural('maximum %s day', 'maximum %s days', I18N::number(self::MAX_DAYS), I18N::number(self::MAX_DAYS)), '</em>';
-		echo '</td></tr>';
+		echo ' ' . I18N::plural('maximum %s day', 'maximum %s days', I18N::number(self::MAX_DAYS), I18N::number(self::MAX_DAYS));
+		echo '</div></div>';
 
-		echo '<tr><td class="descriptionbox wrap width33">';
+		echo '<div class="form-group row"><label class="col-sm-3 col-form-label" for="infoStyle">';
 		echo I18N::translate('Presentation style');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::selectEditControl('infoStyle', ['list' => I18N::translate('list'), 'table' => I18N::translate('table')], null, $infoStyle, '');
-		echo '</td></tr>';
+		echo '</div><div class="col-sm-9">';
+		echo Bootstrap4::select(['list' => I18N::translate('list'), 'table' => I18N::translate('table')], $infoStyle, ['id' => 'infoStyle', 'name' => 'infoStyle']);
+		echo '</div></div>';
 
-		echo '<tr><td class="descriptionbox wrap width33">';
+		echo '<div class="form-group row"><label class="col-sm-3 col-form-label" for="sortStyle">';
 		echo I18N::translate('Sort order');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::selectEditControl('sortStyle', [
+		echo '</div><div class="col-sm-9">';
+		echo Bootstrap4::select([
 			'name'      => /* I18N: An option in a list-box */ I18N::translate('sort by name'),
 			'date_asc'  => /* I18N: An option in a list-box */ I18N::translate('sort by date, oldest first'),
 			'date_desc' => /* I18N: An option in a list-box */ I18N::translate('sort by date, newest first'),
-		], null, $sortStyle, '');
-		echo '</td></tr>';
+		], $sortStyle, ['id' => 'sortStyle', 'name' => 'sortStyle']);
+		echo '</div></div>';
 
-		echo '<tr><td class="descriptionbox wrap width33">';
+		echo '<div class="form-group row"><label class="col-sm-3 col-form-label" for="show_usere">';
 		echo /* I18N: label for a yes/no option */ I18N::translate('Show the user who made the change');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::editFieldYesNo('show_user', $show_user);
-		echo '</td></tr>';
-
-		echo '<tr><td class="descriptionbox wrap width33">';
-		echo /* I18N: label for a yes/no option */ I18N::translate('Add a scrollbar when block contents grow');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::editFieldYesNo('block', $block);
-		echo '</td></tr>';
-
-		echo '<tr><td class="descriptionbox wrap width33">';
-		echo I18N::translate('Should this block be hidden when it is empty');
-		echo '</td><td class="optionbox">';
-		echo FunctionsEdit::editFieldYesNo('hide_empty', $hide_empty);
-		echo '</td></tr>';
-		echo '<tr><td colspan="2" class="optionbox wrap">';
-		echo '<span class="error">', I18N::translate('If you hide an empty block, you will not be able to change its configuration until it becomes visible by no longer being empty.'), '</span>';
-		echo '</td></tr>';
+		echo '</div><div class="col-sm-9">';
+		echo Bootstrap4::radioButtons('show_user', FunctionsEdit::optionsNoYes(), $show_user, true);
+		echo '</div></div>';
 	}
 
 	/**
@@ -296,16 +268,14 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 
 		$html = '';
 		$controller
-			->addExternalJavascript(WT_JQUERY_DATATABLES_JS_URL)
 			->addInlineJavascript('
-				jQuery("#' . $table_id . '").dataTable({
+				$("#' . $table_id . '").dataTable({
 					dom: \'t\',
 					paging: false,
 					autoWidth:false,
 					lengthChange: false,
 					filter: false,
 					' . I18N::datatablesI18N() . ',
-					jQueryUI: true,
 					sorting: [' . $aaSorting . '],
 					columns: [
 						{ sortable: false, class: "center" },
@@ -320,7 +290,7 @@ class RecentChangesModule extends AbstractModule implements ModuleBlockInterface
 		$html .= '<thead><tr>';
 		$html .= '<th></th>';
 		$html .= '<th>' . I18N::translate('Record') . '</th>';
-		$html .= '<th>' . GedcomTag::getLabel('CHAN') . '</th>';
+		$html .= '<th>' . I18N::translate('Last change') . '</th>';
 		$html .= '<th>' . GedcomTag::getLabel('_WT_USER') . '</th>';
 		$html .= '</tr></thead><tbody>';
 

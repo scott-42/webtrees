@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -149,8 +149,8 @@ class BatchUpdateMarriedNamesPlugin extends BatchUpdateBasePlugin {
 	 */
 	public function getOptionsForm() {
 		return
-			'<div class="form-group">' .
-			'<label class="control-label col-sm-3">' . I18N::translate('Surname option') . '</label>' .
+			'<div class="row form-group">' .
+			'<label class="col-sm-3 col-form-label">' . I18N::translate('Surname option') . '</label>' .
 			'<div class="col-sm-9">' .
 			'<select class="form-control" name="surname" onchange="reset_reload();">' .
 			'<option value="replace" ' .

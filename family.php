@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,19 +15,14 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\FamilyController;
 use Fisharebest\Webtrees\Functions\FunctionsCharts;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 
-define('WT_SCRIPT_NAME', 'family.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $record     = Family::getInstance(Filter::get('famid', WT_REGEX_XREF), $WT_TREE);
 $controller = new FamilyController($record);
@@ -69,18 +64,18 @@ if ($controller->record && $controller->record->canShow()) {
 
 ?>
 <div id="family-page">
-	<h2><?php echo $controller->record->getFullName(); ?></h2>
+	<h2><?= $controller->record->getFullName() ?></h2>
 
 	<table id="family-table">
 		<tr style="vertical-align:top;">
-			<td style="width: <?php echo Theme::theme()->parameter('chart-box-x') + 30; ?>px;"><!--//List of children//-->
-				<?php FunctionsCharts::printFamilyChildren($controller->record); ?>
+			<td style="width: <?= Theme::theme()->parameter('chart-box-x') + 30 ?>px;"><!--//List of children//-->
+				<?php FunctionsCharts::printFamilyChildren($controller->record) ?>
 			</td>
 			<td> <!--//parents pedigree chart and Family Details//-->
 				<table width="100%">
 					<tr>
-						<td class="subheaders"><?php echo I18N::translate('Parents'); ?></td>
-						<td class="subheaders"><?php echo I18N::translate('Grandparents'); ?></td>
+						<td class="subheaders"><?= I18N::translate('Parents') ?></td>
+						<td class="subheaders"><?= I18N::translate('Grandparents') ?></td>
 					</tr>
 					<tr>
 						<td colspan="2">
@@ -101,7 +96,7 @@ if ($controller->record && $controller->record->canShow()) {
 					</tr>
 					<tr>
 						<td colspan="2">
-							<span class="subheaders"><?php echo I18N::translate('Family group information'); ?></span>
+							<span class="subheaders"><?= I18N::translate('Family group information') ?></span>
 							<?php
 							if ($controller->record->canShow()) {
 								echo '<table class="facts_table">';

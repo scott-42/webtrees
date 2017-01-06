@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,7 @@ namespace Fisharebest\Webtrees\Controller;
 use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Functions\FunctionsCharts;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
+use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Theme;
@@ -29,7 +30,7 @@ class AncestryController extends ChartController {
 	/** @var int Show boxes for cousins */
 	public $show_cousins;
 
-	/** @var int Determines style of chart */
+	/** @var string Determines style of chart  '0', '1', '2' or '3' */
 	public $chart_style;
 
 	/** @var int Number of generations to display */
@@ -39,23 +40,12 @@ class AncestryController extends ChartController {
 	 * Startup activity
 	 */
 	public function __construct() {
-		global $WT_TREE;
-
 		parent::__construct();
 
-		// Extract form parameters
+		// Request details
 		$this->show_cousins = Filter::getInteger('show_cousins', 0, 1);
 		$this->chart_style  = Filter::get('chart_style', '[0123]', '0');
-		$this->generations  = Filter::getInteger('PEDIGREE_GENERATIONS', 2, $WT_TREE->getPreference('MAX_PEDIGREE_GENERATIONS'), $WT_TREE->getPreference('DEFAULT_PEDIGREE_GENERATIONS'));
-
-		if ($this->root && $this->root->canShowName()) {
-			$this->setPageTitle(
-				/* I18N: %s is an individual’s name */
-				I18N::translate('Ancestors of %s', $this->root->getFullName())
-			);
-		} else {
-			$this->setPageTitle(I18N::translate('Ancestors'));
-		}
+		$this->generations  = Filter::getInteger('PEDIGREE_GENERATIONS', 2, $this->tree()->getPreference('MAX_PEDIGREE_GENERATIONS'), $this->tree()->getPreference('DEFAULT_PEDIGREE_GENERATIONS'));
 	}
 
 	/**
@@ -66,7 +56,7 @@ class AncestryController extends ChartController {
 	 * @param int        $depth the ascendancy depth to show
 	 */
 	public function printChildAscendancy(Individual $individual, $sosa, $depth) {
-		echo '<li>';
+		echo '<li class="wt-ancestry-chart-list-item">';
 		echo '<table><tbody><tr><td>';
 		if ($sosa === 1) {
 			echo '<img src="', Theme::theme()->parameter('image-spacer'), '" height="3" width="', Theme::theme()->parameter('chart-descendancy-indent'), '"></td><td>';
@@ -74,10 +64,10 @@ class AncestryController extends ChartController {
 			echo '<img src="', Theme::theme()->parameter('image-spacer'), '" height="3" width="2">';
 			echo '<img src="', Theme::theme()->parameter('image-hline'), '" height="3" width="', Theme::theme()->parameter('chart-descendancy-indent') - 2, '"></td><td>';
 		}
-		FunctionsPrint::printPedigreePerson($individual, $this->showFull());
+		FunctionsPrint::printPedigreePerson($individual);
 		echo '</td><td>';
 		if ($sosa > 1) {
-			FunctionsCharts::printUrlArrow('?rootid=' . $individual->getXref() . '&amp;PEDIGREE_GENERATIONS=' . $this->generations . '&amp;show_full=' . $this->showFull() . '&amp;chart_style=' . $this->chart_style . '&amp;ged=' . $individual->getTree()->getNameUrl(), I18N::translate('Ancestors of %s', $individual->getFullName()), 3);
+			FunctionsCharts::printUrlArrow('?rootid=' . $individual->getXref() . '&amp;PEDIGREE_GENERATIONS=' . $this->generations . '&amp;chart_style=' . $this->chart_style . '&amp;ged=' . $individual->getTree()->getNameUrl(), I18N::translate('Ancestors of %s', $individual->getFullName()), 3);
 		}
 		echo '</td><td class="details1">&nbsp;<span class="person_box' . ($sosa === 1 ? 'NN' : ($sosa % 2 ? 'F' : '')) . '">', I18N::number($sosa), '</span> ';
 		echo '</td><td class="details1">&nbsp;', FunctionsCharts::getSosaName($sosa), '</td>';
@@ -98,7 +88,7 @@ class AncestryController extends ChartController {
 			}
 			echo '</span>';
 			// display parents recursively - or show empty boxes
-			echo '<ul id="sosa_', $sosa, '" class="generation">';
+			echo '<ul class="wt-ancestry-chart-list" id="sosa_', $sosa, '" class="generation">';
 			if ($family->getHusband()) {
 				$this->printChildAscendancy($family->getHusband(), $sosa * 2, $depth - 1);
 			}
@@ -108,5 +98,72 @@ class AncestryController extends ChartController {
 			echo '</ul>';
 		}
 		echo '</li>';
+	}
+
+	/**
+	 * Get the title of this chart
+	 *
+	 * @return string
+	 */
+	public function getPageTitle() {
+		if ($this->root !== null && $this->root->canShowName()) {
+			return /* I18N: %s is an individual’s name */ I18N::translate('Ancestors of %s', $this->root->getFullName());
+		} else {
+			return I18N::translate('Ancestors');
+		}
+	}
+
+	/**
+	 * Get the content of this chart
+	 *
+	 * @return string
+	 */
+	public function getChart() {
+		if ($this->root === null || !$this->root->canShowName()) {
+			return '<p>' . I18N::translate('This individual does not exist or you do not have permission to view it.') . '</p>';
+		}
+
+		switch ($this->chart_style) {
+		case 0:
+			// List
+			return $this->printChildAscendancy($this->root, 1, $this->generations - 1);
+
+		case 1:
+			// Booklet
+			// first page : show indi facts
+			FunctionsPrint::printPedigreePerson($this->root);
+			// process the tree
+			$ancestors = $this->sosaAncestors($this->generations - 1);
+			$ancestors = array_filter($ancestors); // The SOSA array includes empty placeholders
+
+			foreach ($ancestors as $sosa => $individual) {
+				foreach ($individual->getChildFamilies() as $family) {
+					FunctionsCharts::printSosaFamily($family->getXref(), $individual->getXref(), $sosa, '', '', '', $this->show_cousins);
+				}
+			}
+			break;
+
+		case 2:
+			// Individual list
+			$ancestors = $this->sosaAncestors($this->generations);
+			$ancestors = array_filter($ancestors); // The SOSA array includes empty placeholders
+
+			return FunctionsPrintLists::individualTable($ancestors, 'sosa');
+
+		case 3:
+			// Family list
+			$ancestors = $this->sosaAncestors($this->generations - 1);
+			$ancestors = array_filter($ancestors); // The SOSA array includes empty placeholders
+			$families  = [];
+			foreach ($ancestors as $individual) {
+				foreach ($individual->getChildFamilies() as $family) {
+					$families[$family->getXref()] = $family;
+				}
+			}
+
+			return FunctionsPrintLists::familyTable($families);
+		}
+
+		return '';
 	}
 }

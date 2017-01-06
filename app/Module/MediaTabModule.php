@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,6 @@ use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Functions\Functions;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\Functions\FunctionsPrintFacts;
-use Fisharebest\Webtrees\GedcomTag;
 use Fisharebest\Webtrees\I18N;
 
 /**
@@ -80,16 +79,16 @@ class MediaTabModule extends AbstractModule implements ModuleTabInterface {
 			?>
 			<tr>
 				<td class="facts_label">
-					<?php echo GedcomTag::getLabel('OBJE'); ?>
+					<?= I18N::translate('Media object') ?>
 				</td>
 				<td class="facts_value">
-					<a href="#" onclick="window.open('addmedia.php?action=showmediaform&amp;linktoid=<?php echo $controller->record->getXref(); ?>&amp;ged=<?php echo $controller->record->getTree()->getNameUrl(); ?>', '_blank', edit_window_specs); return false;">
-						<?php echo I18N::translate('Add a media object'); ?>
+					<a href="#" onclick="window.open('addmedia.php?action=showmediaform&amp;linktoid=<?= $controller->record->getXref() ?>&amp;ged=<?= $controller->record->getTree()->getNameUrl() ?>', '_blank', edit_window_specs); return false;">
+						<?= I18N::translate('Add a media object') ?>
 					</a>
-					<?php echo FunctionsPrint::helpLink('OBJE'); ?>
+					<?= FunctionsPrint::helpLink('OBJE') ?>
 					<br>
-					<a href="#" onclick="window.open('inverselink.php?linktoid=<?php echo $controller->record->getXref(); ?>&amp;ged=<?php echo $WT_TREE->getNameUrl(); ?>&amp;linkto=person', '_blank', find_window_specs); return false;">
-						<?php echo I18N::translate('Link to an existing media object'); ?>
+					<a href="#" onclick="window.open('inverselink.php?linktoid=<?= $controller->record->getXref() ?>&amp;ged=<?= $WT_TREE->getNameUrl() ?>&amp;linkto=person', '_blank', find_window_specs); return false;">
+						<?= I18N::translate('Link to an existing media object') ?>
 					</a>
 				</td>
 			</tr>

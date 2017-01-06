@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,63 +17,48 @@ namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Controller\HourglassController;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
-use Fisharebest\Webtrees\Functions\FunctionsPrint;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
+/** @global Tree $WT_TREE */
 global $WT_TREE;
 
-define('WT_SCRIPT_NAME', 'hourglass.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
 
 $controller = new HourglassController;
 $controller
 	->restrictAccess(Module::isActiveChart($WT_TREE, 'hourglass_chart'))
 	->pageHeader()
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();')
 	->setupJavascript();
 
 ?>
 <div id="hourglass-page">
-	<h2><?php echo $controller->getPageTitle(); ?></h2>
-	<form method="get" name="people" action="?">
-		<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+	<h2><?= $controller->getPageTitle() ?></h2>
+	<form name="people">
+		<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
 		<table class="list_table">
 			<tbody>
 				<tr>
 					<td class="descriptionbox">
-						<?php echo I18N::translate('Individual'); ?>
+						<?= I18N::translate('Individual') ?>
 					</td>
 					<td class="optionbox">
-						<input class="pedigree_form" data-autocomplete-type="INDI" type="text" name="rootid" id="rootid" size="3" value="<?php echo $controller->root->getXref(); ?>">
-						<?php echo FunctionsPrint::printFindIndividualLink('pid'); ?>
-					</td>
-					<td class="descriptionbox">
-						<?php echo I18N::translate('Show details'); ?>
-					</td>
-					<td class="optionbox">
-						<?php echo FunctionsEdit::twoStateCheckbox('show_full', $controller->showFull()); ?>
+						<input class="pedigree_form" data-autocomplete-type="INDI" type="text" name="rootid" id="rootid" size="3" value="<?= $controller->root->getXref() ?>">
 					</td>
 					<td rowspan="3" class="topbottombar vmiddle">
-						<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('view'); ?>">
+						<input type="submit" value="<?= /* I18N: A button label. */ I18N::translate('view') ?>">
 					</td>
 				</tr>
 				<tr>
 					<td class="descriptionbox" >
-						<?php echo I18N::translate('Generations'); ?>
+						<?= I18N::translate('Generations') ?>
 					</td>
 					<td class="optionbox">
-						<?php echo FunctionsEdit::editFieldInteger('generations', $controller->generations, 2, $WT_TREE->getPreference('MAX_DESCENDANCY_GENERATIONS')); ?>
+						<?= Bootstrap4::select(FunctionsEdit::numericOptions(range(2, $WT_TREE->getPreference('MAX_DESCENDANCY_GENERATIONS'))), $controller->generations, ['id' => 'generations', 'name' => 'generations']) ?>
 					</td>
 					<td class="descriptionbox">
-						<?php echo I18N::translate('Show spouses'); ?>
+						<?= I18N::translate('Show spouses') ?>
 					</td>
 					<td class="optionbox">
-						<input type="checkbox" value="1" name="show_spouse" <?php echo $controller->show_spouse ? 'checked' : ''; ?>>
+						<input type="checkbox" value="1" name="show_spouse" <?= $controller->show_spouse ? 'checked' : '' ?>>
 					</td>
 				</tr>
 			</tbody>
@@ -84,10 +69,10 @@ $controller
 		<table>
 			<tr>
 				<td style="vertical-align:middle">
-					<?php $controller->printDescendency($controller->root, 1); ?>
+					<?php $controller->printDescendency($controller->root, 1) ?>
 				</td>
 				<td style="vertical-align:middle">
-					<?php $controller->printPersonPedigree($controller->root, 1); ?>
+					<?php $controller->printPersonPedigree($controller->root, 1) ?>
 				</td>
 			</tr>
 		</table>

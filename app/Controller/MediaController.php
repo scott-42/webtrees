@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,9 +40,7 @@ class MediaController extends GedcomRecordController {
 		$menu = new Menu(I18N::translate('Edit'), '#', 'menu-obje');
 
 		if (Auth::isEditor($this->record->getTree())) {
-			$menu->addSubmenu(new Menu(I18N::translate('Edit the media object'), '#', 'menu-obje-edit', [
-				'onclick' => 'window.open("addmedia.php?action=editmedia&pid=' . $this->record->getXref() . '", "_blank", edit_window_specs)',
-			]));
+			$menu->addSubmenu(new Menu(I18N::translate('Edit the media object'), 'addmedia.php?action=editmedia&pid=' . $this->record->getXref() . '&amp;ged=' . $this->record->getTree()->getNameHtml(), 'menu-obje-edit'));
 
 			// main link displayed on page
 			if (Module::getModuleByName('GEDFact_assistant')) {
@@ -71,9 +69,7 @@ class MediaController extends GedcomRecordController {
 
 		// edit raw
 		if (Auth::isAdmin() || Auth::isEditor($this->record->getTree()) && $this->record->getTree()->getPreference('SHOW_GEDCOM_RECORD')) {
-			$menu->addSubmenu(new Menu(I18N::translate('Edit the raw GEDCOM'), '#', 'menu-obje-editraw', [
-				'onclick' => 'return edit_raw("' . $this->record->getXref() . '");',
-			]));
+			$menu->addSubmenu(new Menu(I18N::translate('Edit the raw GEDCOM'), 'edit_interface.php?action=editraw&amp;ged=' . $this->record->getTree()->getNameHtml() . '&amp;xref=' . $this->record->getXref(), 'menu-obje-editraw'));
 		}
 
 		return $menu;

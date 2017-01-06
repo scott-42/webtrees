@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -370,8 +370,6 @@ class Migration0 implements MigrationInterface {
 		Site::setPreference('SMTP_HOST', 'localhost');
 		Site::setPreference('SMTP_PORT', '25');
 		Site::setPreference('SMTP_AUTH', '1');
-		Site::setPreference('SMTP_AUTH_USER', '');
-		Site::setPreference('SMTP_AUTH_PASS', '');
 		Site::setPreference('SMTP_SSL', 'none');
 		Site::setPreference('SMTP_HELO', $_SERVER['SERVER_NAME']);
 		Site::setPreference('SMTP_FROM_NAME', $_SERVER['SERVER_NAME']);

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -155,7 +155,7 @@ class SearchController extends PageController {
 		}
 
 		// Trees to search
-		if (Site::getPreference('ALLOW_CHANGE_GEDCOM')) {
+		if (Site::getPreference('ALLOW_CHANGE_GEDCOM') === '1') {
 			foreach (Tree::getAll() as $search_tree) {
 				if (Filter::get('tree_' . $search_tree->getTreeId())) {
 					$this->search_trees[] = $search_tree;

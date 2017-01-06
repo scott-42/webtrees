@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -76,7 +76,6 @@ class Migration30 implements MigrationInterface {
 			"(-1, 'NOTE_FACTS_UNIQUE', '')," .
 			"(-1, 'NOTE_ID_PREFIX', 'N')," .
 			"(-1, 'NO_UPDATE_CHAN', '0')," .
-			"(-1, 'PEDIGREE_FULL_DETAILS', '1')," .
 			"(-1, 'PEDIGREE_LAYOUT', '1')," .
 			"(-1, 'PEDIGREE_ROOT_ID', '')," .
 			"(-1, 'PEDIGREE_SHOW_GENDER', '0')," .

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -127,19 +127,19 @@ class IndividualFactsTabModule extends AbstractModule implements ModuleTabInterf
 			</colgroup>
 			<tbody>
 				<tr>
-					<td colspan="2" class="descriptionbox noprint">
+					<td colspan="2" class="descriptionbox">
 						<?php if ($controller->record->getTree()->getPreference('SHOW_RELATIVES_EVENTS')) : ?>
 						<label>
 							<input id="show-relatives-facts" type="checkbox">
-							<?php echo I18N::translate('Events of close relatives'); ?>
+							<?= I18N::translate('Events of close relatives') ?>
 						</label>
-						<?php endif; ?>
+						<?php endif ?>
 						<?php if (file_exists(Site::getPreference('INDEX_DIRECTORY') . 'histo.' . WT_LOCALE . '.php')) : ?>
 						<label>
 							<input id="show-historical-facts" type="checkbox">
-							<?php echo I18N::translate('Historical facts'); ?>
+							<?= I18N::translate('Historical facts') ?>
 						</label>
-						<?php endif; ?>
+						<?php endif ?>
 					</td>
 				</tr>
 				<?php
@@ -161,8 +161,8 @@ class IndividualFactsTabModule extends AbstractModule implements ModuleTabInterf
 			</tbody>
 		</table>
 		<script>
-			persistent_toggle("show-relatives-facts", "tr.rela");
-			persistent_toggle("show-historical-facts", "tr.histo");
+			//persistent_toggle("show-relatives-facts", "tr.rela");
+			//persistent_toggle("show-historical-facts", "tr.histo");
 		</script>
 		<?php
 

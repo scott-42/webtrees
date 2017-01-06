@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,12 +40,6 @@ interface ThemeInterface {
 	 */
 	public function bodyHeader();
 
-	/**
-	 * Create the top of the <body> (for popup windows).
-	 *
-	 * @return string
-	 */
-	public function bodyHeaderPopupWindow();
 
 	/**
 	 * Create a contact link for a user.
@@ -69,14 +63,6 @@ interface ThemeInterface {
 	 * @return string
 	 */
 	public function footerContainer();
-
-	/**
-	 * Close the main content.
-	 * Note that popup windows are deprecated
-	 *
-	 * @return string
-	 */
-	public function footerContainerPopupWindow();
 
 	/**
 	 * Format the contents of a variable-height home-page block.

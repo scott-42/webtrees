@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,46 +15,38 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\PedigreeController;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 
-define('WT_SCRIPT_NAME', 'pedigree.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $controller = new PedigreeController;
 $controller
 	->restrictAccess(Module::isActiveChart($WT_TREE, 'pedigree_chart'))
 	->pageHeader()
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
 	->addInlineJavascript('
 	(function() {
-		autocomplete();
-
-		jQuery("#childarrow").on("click", ".menuselect", function(e) {
+		$("#childarrow").on("click", ".menuselect", function(e) {
 			e.preventDefault();
-			jQuery("#childbox").slideToggle("fast");
+			$("#childbox").slideToggle("fast");
 		});
 
-		jQuery("#pedigree_chart")
+		$("#pedigree_chart")
 			.width('  . $controller->chartsize['x'] . ')
 			.height(' . $controller->chartsize['y'] . ');
 
 		// Set variables
 		var p0, p1, p2,  // Holds the ids of the boxes used in the join calculations
-			canvas       = jQuery("#pedigree_canvas"),
+			canvas       = $("#pedigree_canvas"),
 			ctx          = canvas[0].getContext("2d"),
-			nodes        = jQuery(".shadow").length,
+			nodes        = $(".shadow").length,
 			gen1Start    = Math.ceil(nodes / 2),
-			boxWidth     = jQuery(".person_box_template").first().outerWidth(),
-			boxHeight    = jQuery(".person_box_template").first().outerHeight(),
+			boxWidth     = $(".person_box_template").first().outerWidth(),
+			boxHeight    = $(".person_box_template").first().outerHeight(),
 			useOffset    = true,
 			extraOffsetX = Math.floor(boxWidth / 15), // set offsets to be sensible fractions of the box size
 			extraOffsetY = Math.floor(boxHeight / 10),
@@ -86,8 +78,8 @@ $controller
 			// Drop through
 		case ' . $controller::LANDSCAPE . ':
 			for (var i = 2; i < nodes; i+=2) {
-				p0 = jQuery("#sosa_" + i);
-				p1 = jQuery("#sosa_" + (i+1));
+				p0 = $("#sosa_" + i);
+				p1 = $("#sosa_" + (i+1));
 				// change line y position if within 10% of box top/bottom
 				addOffset = boxHeight / (p1.position().top - p0.position().top) > 0.9 ? extraOffsetY: 0;
 				if (' . json_encode(I18N::direction() === 'rtl') . ') {
@@ -114,9 +106,9 @@ $controller
 				// Drop through
 		case ' . $controller::OLDEST_AT_BOTTOM . ':
 			for (var i = 1; i < gen1Start; i++) {
-				p0 = jQuery("#sosa_" + i);
-				p1 = jQuery("#sosa_" + (i*2));
-				p2 = jQuery("#sosa_" + (i*2+1));
+				p0 = $("#sosa_" + i);
+				p1 = $("#sosa_" + (i*2));
+				p2 = $("#sosa_" + (i*2+1));
 				addOffset = i*2 >= gen1Start ? extraOffsetX : 0;
 				var templateHeight = p0.children(".person_box_template").outerHeight(),
 					// bHeight taks account of offset when root person has a menu icon
@@ -144,50 +136,45 @@ $controller
 	');
 
 ?>
-<div id="pedigree-page">
-	<h2><?php echo $controller->getPageTitle(); ?></h2>
+<h2><?= $controller->getPageTitle() ?></h2>
 
-	<form name="people" id="people" method="get" action="?">
-		<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
-		<input type="hidden" name="show_full" value="<?php echo $controller->showFull(); ?>">
-		<table class="list_table">
-			<tbody>
-				<tr>
-					<th class="descriptionbox wrap">
-						<?php echo I18N::translate('Individual'); ?>
-					</th>
-					<th class="descriptionbox wrap">
-						<?php echo I18N::translate('Generations'); ?>
-					</th>
-					<th class="descriptionbox wrap">
-						<?php echo I18N::translate('Layout'); ?>
-					</th>
-					<th class="descriptionbox wrap">
-						<?php echo I18N::translate('Show details'); ?>
-					</th>
-					<th rowspan="2" class="facts_label03">
-						<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('view'); ?>">
-					</th>
-				</tr>
-				<tr>
-					<td class="optionbox">
-						<input class="pedigree_form" data-autocomplete-type="INDI" type="text" id="rootid" name="rootid"
-							size="3" value="<?php echo $controller->root->getXref(); ?>">
-						<?php echo FunctionsPrint::printFindIndividualLink('rootid'); ?>
-					</td>
-					<td class="optionbox center">
-						<?php echo FunctionsEdit::editFieldInteger('PEDIGREE_GENERATIONS', $controller->generations, 3, $WT_TREE->getPreference('MAX_PEDIGREE_GENERATIONS')); ?>
-					</td>
-					<td class="optionbox center">
-						<?php echo FunctionsEdit::selectEditControl('orientation', [0 => I18N::translate('Portrait'), 1 => I18N::translate('Landscape'), 2 => I18N::translate('Oldest at top'), 3 => I18N::translate('Oldest at bottom')], null, $controller->orientation); ?>
-					</td>
-					<td class="optionbox center">
-						<?php echo FunctionsEdit::twoStateCheckbox('show_full', $controller->showFull()); ?>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</form>
+<form>
+	<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="rootid">
+			<?= I18N::translate('Individual') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= FunctionsEdit::formControlIndividual($controller->root, ['id' => 'rootid', 'name' => 'rootid']) ?>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="PEDIGREE_GENERATIONS">
+			<?= I18N::translate('Generations') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= Bootstrap4::select(FunctionsEdit::numericOptions(range(2, $WT_TREE->getPreference('MAX_PEDIGREE_GENERATIONS'))), $controller->generations, ['id' => 'PEDIGREE_GENERATIONS', 'name' => 'PEDIGREE_GENERATIONS']) ?>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="orientation">
+			<?= I18N::translate('Layout') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= Bootstrap4::select([0 => I18N::translate('Portrait'), 1 => I18N::translate('Landscape'), 2 => I18N::translate('Oldest at top'), 3 => I18N::translate('Oldest at bottom')], $controller->orientation, ['id' => 'orientation', 'name' => 'orientation']) ?>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<div class="col-sm-9 offset-sm-3">
+			<input class="btn btn-primary" type="submit" value="<?= /* I18N: A button label. */ I18N::translate('view') ?>">
+		</div>
+	</div>
+</form>
+
 <?php
 if ($controller->error_message) {
 	echo '<p class="ui-state-error">', $controller->error_message, '</p>';
@@ -216,7 +203,7 @@ foreach ($controller->nodes as $i => $node) {
 		}
 	}
 
-	FunctionsPrint::printPedigreePerson($controller->nodes[$i]['indi'], $controller->showFull());
+	FunctionsPrint::printPedigreePerson($controller->nodes[$i]['indi']);
 
 	if ($controller->orientation === $controller::OLDEST_AT_TOP) {
 		if (!$i) {
@@ -230,6 +217,5 @@ foreach ($controller->nodes as $i => $node) {
 	echo '</div>';
 }
 
-echo '<canvas id="pedigree_canvas" width="' . $controller->chartsize['x'] . '" height="' . $controller->chartsize['y'] . '"><p>No lines between boxes? Unfortunately your browser does not support the HTML5 canvas feature.</p></canvas>';
-echo '</div>'; //close #pedigree_chart
-echo '</div>'; //close #pedigree-page
+echo '<canvas id="pedigree_canvas" width="' . $controller->chartsize['x'] . '" height="' . $controller->chartsize['y'] . '"></canvas>';
+echo '</div>';

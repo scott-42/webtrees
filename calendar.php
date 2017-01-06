@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,13 +15,6 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Date\FrenchDate;
 use Fisharebest\Webtrees\Date\GregorianDate;
@@ -32,8 +25,10 @@ use Fisharebest\Webtrees\Date\JulianDate;
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 
-define('WT_SCRIPT_NAME', 'calendar.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $CALENDAR_FORMAT = $WT_TREE->getPreference('CALENDAR_FORMAT');
 
@@ -133,22 +128,22 @@ $controller->pageHeader();
 
 ?>
 <div id="calendar-page">
-	<h2 class="center"><?php echo $controller->getPageTitle() ?></h2>
+	<h2 class="wt-page-title"><?= $controller->getPageTitle() ?></h2>
 
 	<form name="dateform">
-		<input type="hidden" name="cal" value="<?php echo $cal ?>">
-		<input type="hidden" name="day" value="<?php echo $cal_date->d ?>">
-		<input type="hidden" name="month" value="<?php echo $cal_month ?>">
-		<input type="hidden" name="year" value="<?php echo $cal_date->y ?>">
-		<input type="hidden" name="view" value="<?php echo $view ?>">
-		<input type="hidden" name="filterev" value="<?php echo $filterev ?>">
-		<input type="hidden" name="filtersx" value="<?php echo $filtersx ?>">
-		<input type="hidden" name="filterof" value="<?php echo $filterof ?>">
+		<input type="hidden" name="cal" value="<?= $cal ?>">
+		<input type="hidden" name="day" value="<?= $cal_date->d ?>">
+		<input type="hidden" name="month" value="<?= $cal_month ?>">
+		<input type="hidden" name="year" value="<?= $cal_date->y ?>">
+		<input type="hidden" name="view" value="<?= $view ?>">
+		<input type="hidden" name="filterev" value="<?= $filterev ?>">
+		<input type="hidden" name="filtersx" value="<?= $filtersx ?>">
+		<input type="hidden" name="filterof" value="<?= $filterof ?>">
 
 		<table class="facts_table width100">
 			<tr>
 				<td class="descriptionbox vmiddle">
-					<?php echo I18N::translate('Day') ?>
+					<?= I18N::translate('Day') ?>
 				</td>
 				<td colspan="3" class="optionbox">
 					<?php
@@ -164,14 +159,14 @@ $controller->pageHeader();
 						echo ' | ';
 					}
 					?>
-					<a href="?cal=<?php echo $cal ?>&amp;day=<?php echo $today->d ?>&amp;month=<?php echo $today_month ?>&amp;year=<?php echo $today->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=<?php echo $view ?>">
+					<a href="?cal=<?= $cal ?>&amp;day=<?= $today->d ?>&amp;month=<?= $today_month ?>&amp;year=<?= $today->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=<?= $view ?>">
 						<b><?php $tmp = new Date($today->format('%@ %A %O %E')); echo $tmp->display() ?></b>
 					</a>
 				</td>
 			</tr>
 			<tr>
 				<td class="descriptionbox">
-					<?php echo I18N::translate('Month') ?>
+					<?= I18N::translate('Month') ?>
 				</td>
 				<td class="optionbox" colspan="3">
 					<?php
@@ -193,92 +188,92 @@ $controller->pageHeader();
 						echo ' | ';
 					}
 					?>
-					<a href="?cal=<?php echo $cal ?>&amp;day=<?php echo min($cal_date->d, $today->daysInMonth()) ?>&amp;month=<?php echo $today_month ?>&amp;year=<?php echo $today->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=<?php echo $view ?>">
-						<b><?php echo $today->format('%F %Y') ?></b>
+					<a href="?cal=<?= $cal ?>&amp;day=<?= min($cal_date->d, $today->daysInMonth()) ?>&amp;month=<?= $today_month ?>&amp;year=<?= $today->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=<?= $view ?>">
+						<b><?= $today->format('%F %Y') ?></b>
 					</a>
 				</td>
 			</tr>
 			<tr>
 				<td class="descriptionbox vmiddle">
-					<label for="year"><?php echo I18N::translate('Year') ?></label>
+					<label for="year"><?= I18N::translate('Year') ?></label>
 				</td>
 				<td class="optionbox vmiddle">
-					<a href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y === 1 ? -1 : $cal_date->y - 1 ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=<?php echo $view ?>">
+					<a href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y === 1 ? -1 : $cal_date->y - 1 ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=<?= $view ?>">
 						-1
 					</a>
-					<input type="text" id="year" name="year" value="<?php echo $year ?>" size="4">
-					<a href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y === -1 ? 1 : $cal_date->y + 1 ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=<?php echo $view ?>">
+					<input type="text" id="year" name="year" value="<?= $year ?>" size="4">
+					<a href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y === -1 ? 1 : $cal_date->y + 1 ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=<?= $view ?>">
 						+1
 					</a>
 					|
-					<a href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $today->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=<?php echo $view ?>">
-						<?php echo $today->format('%Y') ?>
+					<a href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $today->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=<?= $view ?>">
+						<?= $today->format('%Y') ?>
 					</a>
-					<?php echo FunctionsPrint::helpLink('annivers_year_select') ?>
+					<?= FunctionsPrint::helpLink('annivers_year_select') ?>
 				</td>
 
 				<td class="descriptionbox vmiddle">
-					<?php echo I18N::translate('Show') ?>
+					<?= I18N::translate('Show') ?>
 				</td>
 
 				<td class="optionbox vmiddle">
 					<?php if (!$WT_TREE->getPreference('HIDE_LIVE_PEOPLE') || Auth::check()): ?>
 					<select class="list_value" name="filterof" onchange="document.dateform.submit();">
-						<option value="all" <?php echo $filterof === 'all' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('All individuals') ?>
+						<option value="all" <?= $filterof === 'all' ? 'selected' : '' ?>>
+							<?= I18N::translate('All individuals') ?>
 						</option>
-						<option value="living" <?php echo $filterof === 'living' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('Living individuals') ?>
+						<option value="living" <?= $filterof === 'living' ? 'selected' : '' ?>>
+							<?= I18N::translate('Living individuals') ?>
 						</option>
-						<option value="recent" <?php echo $filterof === 'recent' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('Recent years (&lt; 100 yrs)') ?>
+						<option value="recent" <?= $filterof === 'recent' ? 'selected' : '' ?>>
+							<?= I18N::translate('Recent years (&lt; 100 yrs)') ?>
 						</option>
 					</select>
-					<?php endif; ?>
+					<?php endif ?>
 
-					<a title="<?php echo I18N::translate('All individuals') ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;view=<?php echo $view ?>">
-						<i class="<?php echo $filtersx === '' ? 'icon-sex_m_15x15' : 'icon-sex_m_9x9' ?>"></i>
-						<i class="<?php echo $filtersx === '' ? 'icon-sex_f_15x15' : 'icon-sex_f_9x9' ?>"></i>
+					<a title="<?= I18N::translate('All individuals') ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;view=<?= $view ?>">
+						<i class="<?= $filtersx === '' ? 'icon-sex_m_15x15' : 'icon-sex_m_9x9' ?>"></i>
+						<i class="<?= $filtersx === '' ? 'icon-sex_f_15x15' : 'icon-sex_f_9x9' ?>"></i>
 					</a>
 					|
-					<a title="<?php echo I18N::translate('Males') ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=M&amp;view=<?php echo $view ?>">
-						<i class="<?php echo $filtersx === 'M' ? 'icon-sex_m_15x15' : 'icon-sex_m_9x9' ?>"></i>
+					<a title="<?= I18N::translate('Males') ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=M&amp;view=<?= $view ?>">
+						<i class="<?= $filtersx === 'M' ? 'icon-sex_m_15x15' : 'icon-sex_m_9x9' ?>"></i>
 					</a>
 					|
-					<a title="<?php echo I18N::translate('Females') ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=F&amp;view=<?php echo $view ?>">
-						<i class="<?php echo $filtersx === 'F' ? 'icon-sex_f_15x15' : 'icon-sex_f_9x9' ?>"></i>
+					<a title="<?= I18N::translate('Females') ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=F&amp;view=<?= $view ?>">
+						<i class="<?= $filtersx === 'F' ? 'icon-sex_f_15x15' : 'icon-sex_f_9x9' ?>"></i>
 					</a>
 
 					<select class="list_value" name="filterev" onchange="document.dateform.submit();">
-						<option value="BIRT-MARR-DEAT" <?php echo $filterev === 'BIRT-MARR-DEAT' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('Vital records') ?>
+						<option value="BIRT-MARR-DEAT" <?= $filterev === 'BIRT-MARR-DEAT' ? 'selected' : '' ?>>
+							<?= I18N::translate('Vital records') ?>
 						</option>
-						<option value="" <?php echo $filterev === '' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('All') ?>
+						<option value="" <?= $filterev === '' ? 'selected' : '' ?>>
+							<?= I18N::translate('All') ?>
 						</option>
-						<option value="BIRT" <?php echo $filterev === 'BIRT' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('BIRT') ?>
+						<option value="BIRT" <?= $filterev === 'BIRT' ? 'selected' : '' ?>>
+							<?= I18N::translate('Birth') ?>
 						</option>
-						<option value="BAPM-CHR-CHRA" <?php echo $filterev === 'BAPM-CHR-CHRA' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('BAPM') ?>
+						<option value="BAPM-CHR-CHRA" <?= $filterev === 'BAPM-CHR-CHRA' ? 'selected' : '' ?>>
+							<?= I18N::translate('Baptism') ?>
 						</option>
-						<option value="MARR-_COML-_NMR" <?php echo $filterev === 'MARR-_COML-_NMR' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('MARR') ?>
+						<option value="MARR-_COML-_NMR" <?= $filterev === 'MARR-_COML-_NMR' ? 'selected' : '' ?>>
+							<?= I18N::translate('Marriage') ?>
 						</option>
-						<option value="DIV-_SEPR" <?php echo $filterev === 'DIV-_SEPR' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('DIV') ?>
+						<option value="DIV-_SEPR" <?= $filterev === 'DIV-_SEPR' ? 'selected' : '' ?>>
+							<?= I18N::translate('Divorce') ?>
 						</option>
-						<option value="DEAT" <?php echo $filterev === 'DEAT' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('DEAT') ?>
+						<option value="DEAT" <?= $filterev === 'DEAT' ? 'selected' : '' ?>>
+							<?= I18N::translate('Death') ?>
 						</option>
-						<option value="BURI" <?php echo $filterev === 'BURI' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('BURI') ?>
+						<option value="BURI" <?= $filterev === 'BURI' ? 'selected' : '' ?>>
+							<?= I18N::translate('Burial') ?>
 						</option>
-						<option value="IMMI,EMIG" <?php echo $filterev === 'IMMI,EMIG' ? 'selected' : '' ?>>
-							<?php echo GedcomTag::getLabel('EMIG') ?>
+						<option value="IMMI,EMIG" <?= $filterev === 'IMMI,EMIG' ? 'selected' : '' ?>>
+							<?= I18N::translate('Emigration') ?>
 						</option>
-						<option value="EVEN" <?php echo $filterev === 'EVEN' ? 'selected' : '' ?>>
-							<?php echo I18N::translate('Custom event') ?>
+						<option value="EVEN" <?= $filterev === 'EVEN' ? 'selected' : '' ?>>
+							<?= I18N::translate('Custom event') ?>
 						</option>
 					</select>
 				</td>
@@ -288,16 +283,16 @@ $controller->pageHeader();
 		<table class="width100">
 			<tr>
 				<td class="topbottombar width50">
-					<a class="<?php echo $view === 'day' ? 'error' : '' ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=day">
-						<?php echo I18N::translate('View this day') ?>
+					<a class="<?= $view === 'day' ? 'error' : '' ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=day">
+						<?= I18N::translate('View this day') ?>
 					</a>
 					|
-					<a class="<?php echo $view === 'month' ? 'error' : '' ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=month">
-						<?php echo I18N::translate('View this month') ?>
+					<a class="<?= $view === 'month' ? 'error' : '' ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=month">
+						<?= I18N::translate('View this month') ?>
 					</a>
 					|
-					<a class="<?php echo $view === 'year' ? 'error' : '' ?>" href="?cal=<?php echo $cal ?>&amp;day=<?php echo $cal_date->d ?>&amp;month=<?php echo $cal_month ?>&amp;year=<?php echo $cal_date->y ?>&amp;filterev=<?php echo $filterev ?>&amp;filterof=<?php echo $filterof ?>&amp;filtersx=<?php echo $filtersx ?>&amp;view=year">
-						<?php echo I18N::translate('View this year') ?>
+					<a class="<?= $view === 'year' ? 'error' : '' ?>" href="?cal=<?= $cal ?>&amp;day=<?= $cal_date->d ?>&amp;month=<?= $cal_month ?>&amp;year=<?= $cal_date->y ?>&amp;filterev=<?= $filterev ?>&amp;filterof=<?= $filterof ?>&amp;filtersx=<?= $filtersx ?>&amp;view=year">
+						<?= I18N::translate('View this year') ?>
 					</a>
 				</td>
 				<td class="topbottombar width50">

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@
 namespace Fisharebest\Webtrees\Functions;
 
 use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Bootstrap4;
 use Fisharebest\Webtrees\Census\Census;
 use Fisharebest\Webtrees\Census\CensusOfCzechRepublic;
 use Fisharebest\Webtrees\Census\CensusOfDenmark;
@@ -45,7 +46,9 @@ use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Module;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Repository;
+use Fisharebest\Webtrees\Select2;
 use Fisharebest\Webtrees\Source;
+use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\User;
 use Rhumsaa\Uuid\Uuid;
 
@@ -53,139 +56,6 @@ use Rhumsaa\Uuid\Uuid;
  * Class FunctionsEdit - common functions for editing
  */
 class FunctionsEdit {
-	/**
-	 * Create a <select> control for a form.
-	 *
-	 * @param string $name
-	 * @param string[] $values
-	 * @param string|null $empty
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
-	 */
-	public static function selectEditControl($name, $values, $empty, $selected, $extra = '') {
-		if (is_null($empty)) {
-			$html = '';
-		} else {
-			if (empty($selected)) {
-				$html = '<option value="" selected>' . Filter::escapeHtml($empty) . '</option>';
-			} else {
-				$html = '<option value="">' . Filter::escapeHtml($empty) . '</option>';
-			}
-		}
-		// A completely empty list would be invalid, and break various things
-		if (empty($values) && empty($html)) {
-			$html = '<option value=""></option>';
-		}
-		foreach ($values as $key => $value) {
-			// PHP array keys are cast to integers!  Cast them back
-			if ((string) $key === (string) $selected) {
-				$html .= '<option value="' . Filter::escapeHtml($key) . '" selected dir="auto">' . Filter::escapeHtml($value) . '</option>';
-			} else {
-				$html .= '<option value="' . Filter::escapeHtml($key) . '" dir="auto">' . Filter::escapeHtml($value) . '</option>';
-			}
-		}
-		if (substr($name, -2) === '[]') {
-			// id attribute is not used for arrays
-			return '<select name="' . $name . '" ' . $extra . '>' . $html . '</select>';
-		} else {
-			return '<select id="' . $name . '" name="' . $name . '" ' . $extra . '>' . $html . '</select>';
-		}
-	}
-
-	/**
-	 * Create a set of radio buttons for a form
-	 *
-	 * @param string $name The ID for the form element
-	 * @param string[] $values Array of value=>display items
-	 * @param string $selected The currently selected item
-	 * @param string $extra Additional markup for the label
-	 *
-	 * @return string
-	 */
-	public static function radioButtons($name, $values, $selected, $extra = '') {
-		$html = '';
-		foreach ($values as $key => $value) {
-			$html .=
-				'<label ' . $extra . '>' .
-				'<input type="radio" name="' . $name . '" value="' . Filter::escapeHtml($key) . '"';
-			// PHP array keys are cast to integers!  Cast them back
-			if ((string) $key === (string) $selected) {
-				$html .= ' checked';
-			}
-			$html .= '>' . Filter::escapeHtml($value) . '</label>';
-		}
-
-		return $html;
-	}
-
-	/**
-	 * Print an edit control for a Yes/No field
-	 *
-	 * @param string $name
-	 * @param bool $selected
-	 * @param string $extra
-	 *
-	 * @return string
-	 */
-	public static function editFieldYesNo($name, $selected = false, $extra = '') {
-		return self::radioButtons(
-			$name, [I18N::translate('no'), I18N::translate('yes')], $selected, $extra
-		);
-	}
-
-	/**
-	 * Print an edit control for a checkbox.
-	 *
-	 * @param string $name
-	 * @param bool $is_checked
-	 * @param string $extra
-	 *
-	 * @return string
-	 */
-	public static function checkbox($name, $is_checked = false, $extra = '') {
-		return '<input type="checkbox" name="' . $name . '" value="1" ' . ($is_checked ? 'checked ' : '') . $extra . '>';
-	}
-
-	/**
-	 * Print an edit control for a checkbox, with a hidden field to store one of the two states.
-	 * By default, a checkbox is either set, or not sent.
-	 * This function gives us a three options, set, unset or not sent.
-	 * Useful for dynamically generated forms where we don't know what elements are present.
-	 *
-	 * @param string $name
-	 * @param int $is_checked 0 or 1
-	 * @param string $extra
-	 *
-	 * @return string
-	 */
-	public static function twoStateCheckbox($name, $is_checked = 0, $extra = '') {
-		return
-			'<input type="hidden" id="' . $name . '" name="' . $name . '" value="' . ($is_checked ? 1 : 0) . '">' .
-			'<input type="checkbox" name="' . $name . '-GUI-ONLY" value="1"' .
-			($is_checked ? ' checked' : '') .
-			' onclick="document.getElementById(\'' . $name . '\').value=(this.checked?1:0);" ' . $extra . '>';
-	}
-
-	/**
-	 * A list of integers (e.g. for an edit control).
-	 *
-	 * @return string[]
-	 */
-	public static function numericOptions($integers) {
-		$array = [];
-		foreach ($integers as $integer) {
-			if ($integer === -1) {
-				$array[$integer] = I18N::translate('All');
-			} else {
-				$array[$integer] = I18N::number($integer);
-			}
-		}
-
-		return $array;
-	}
-
 	/**
 	 * Function edit_language_checkboxes
 	 *
@@ -210,187 +80,352 @@ class FunctionsEdit {
 	}
 
 	/**
-	 * Print an edit control for access level.
+	 * A list of access levels (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldAccessLevel($name, $selected = '', $extra = '') {
-		$ACCESS_LEVEL = [
+	public static function optionsAccessLevels() {
+		return [
 			Auth::PRIV_PRIVATE => I18N::translate('Show to visitors'),
 			Auth::PRIV_USER    => I18N::translate('Show to members'),
 			Auth::PRIV_NONE    => I18N::translate('Show to managers'),
 			Auth::PRIV_HIDE    => I18N::translate('Hide from everyone'),
 		];
-
-		return self::selectEditControl($name, $ACCESS_LEVEL, null, $selected, $extra);
 	}
 
 	/**
-	 * Print an edit control for a RESN field.
+	 * A list of active languages (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldRestriction($name, $selected = '', $extra = '') {
-		$RESN = [
-			''             => '',
-			'none'         => I18N::translate('Show to visitors'), // Not valid GEDCOM, but very useful
-			'privacy'      => I18N::translate('Show to members'),
-			'confidential' => I18N::translate('Show to managers'),
-			'locked'       => I18N::translate('Only managers can edit'),
-		];
+	public static function optionsActiveLanguages() {
+		$languages = [];
+		foreach (I18N::activeLocales() as $locale) {
+			$languages[$locale->languageTag()] = $locale->endonym();
+		}
 
-		return self::selectEditControl($name, $RESN, null, $selected, $extra);
+		return $languages;
 	}
 
 	/**
-	 * Print an edit control for a contact method field.
+	 * A list of calendar conversions (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldContact($name, $selected = '', $extra = '') {
-		// Different ways to contact the users
-		$CONTACT_METHODS = [
+	public static function optionsCalendarConversions() {
+		return ['none' => I18N::translate('No calendar conversion')] + Date::calendarNames();
+	}
+
+	/**
+	 * A list of contact methods (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsContactMethods() {
+		return [
 			'messaging'  => I18N::translate('Internal messaging'),
 			'messaging2' => I18N::translate('Internal messaging with emails'),
 			'messaging3' => I18N::translate('webtrees sends emails with no storage'),
 			'mailto'     => I18N::translate('Mailto link'),
 			'none'       => I18N::translate('No contact'),
 		];
-
-		return self::selectEditControl($name, $CONTACT_METHODS, null, $selected, $extra);
 	}
 
 	/**
-	 * Print an edit control for a language field.
+	 * A list of hide/show options (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldLanguage($name, $selected = '', $extra = '') {
+	public static function optionsHideShow() {
+		return [
+			'0' => I18N::translate('no'),
+			'1' => I18N::translate('yes'),
+		];
+	}
+
+	/**
+	 * A list of installed languages (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsInstalledLanguages() {
 		$languages = [];
-		foreach (I18N::activeLocales() as $locale) {
+		foreach (I18N::installedLocales() as $locale) {
 			$languages[$locale->languageTag()] = $locale->endonym();
 		}
 
-		return self::selectEditControl($name, $languages, null, $selected, $extra);
+		return $languages;
 	}
 
 	/**
-	 * Print an edit control for a range of integers.
+	 * A list of integers (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param int $min
-	 * @param int $max
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldInteger($name, $selected = '', $min, $max, $extra = '') {
+	public static function numericOptions($integers) {
 		$array = [];
-		for ($i = $min; $i <= $max; ++$i) {
-			$array[$i] = I18N::number($i);
+		foreach ($integers as $integer) {
+			if ($integer === -1) {
+				$array[$integer] = I18N::translate('All');
+			} else {
+				$array[$integer] = I18N::number($integer);
+			}
 		}
 
-		return self::selectEditControl($name, $array, null, $selected, $extra);
+		return $array;
 	}
 
 	/**
-	 * Print an edit control for a username.
+	 * A list of no/yes options (e.g. for an edit control).
 	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldUsername($name, $selected = '', $extra = '') {
-		$users = [];
-		foreach (User::all() as $user) {
-			$users[$user->getUserName()] = $user->getRealName() . ' - ' . $user->getUserName();
-		}
-		// The currently selected user may not exist
-		if ($selected && !array_key_exists($selected, $users)) {
-			$users[$selected] = $selected;
-		}
-
-		return self::selectEditControl($name, $users, '-', $selected, $extra);
+	public static function optionsNoYes() {
+		return [
+			'0' => I18N::translate('no'),
+			'1' => I18N::translate('yes'),
+		];
 	}
 
 	/**
-	 * Print an edit control for a ADOP field.
+	 * A list of GEDCOM relationships (e.g. for an edit control).
 	 *
-	 * @param string          $name
-	 * @param string          $selected
-	 * @param string          $extra
-	 * @param Individual|null $individual
-	 *
-	 * @return string
+	 * @return string[]
 	 */
-	public static function editFieldAdoption($name, $selected = '', $extra = '', Individual $individual = null) {
-		return self::selectEditControl($name, GedcomCodeAdop::getValues($individual), null, $selected, $extra);
-	}
-
-	/**
-	 * Print an edit control for a PEDI field.
-	 *
-	 * @param string          $name
-	 * @param string          $selected
-	 * @param string          $extra
-	 * @param Individual|null $individual
-	 *
-	 * @return string
-	 */
-	public static function editFieldPedigree($name, $selected = '', $extra = '', Individual $individual = null) {
-		return self::selectEditControl($name, GedcomCodePedi::getValues($individual), '', $selected, $extra);
-	}
-
-	/**
-	 * Print an edit control for a NAME TYPE field.
-	 *
-	 * @param string          $name
-	 * @param string          $selected
-	 * @param string          $extra
-	 * @param Individual|null $individual
-	 *
-	 * @return string
-	 */
-	public static function editFieldNameType($name, $selected = '', $extra = '', Individual $individual = null) {
-		return self::selectEditControl($name, GedcomCodeName::getValues($individual), '', $selected, $extra);
-	}
-
-	/**
-	 * Print an edit control for a RELA field.
-	 *
-	 * @param string $name
-	 * @param string $selected
-	 * @param string $extra
-	 *
-	 * @return string
-	 */
-	public static function editFieldRelationship($name, $selected = '', $extra = '') {
-		$rela_codes = GedcomCodeRela::getValues();
+	public static function optionsRelationships($relationship) {
+		$relationships = GedcomCodeRela::getValues();
 		// The user is allowed to specify values that aren't in the list.
-		if (!array_key_exists($selected, $rela_codes)) {
-			$rela_codes[$selected] = I18N::translate($selected);
+		if (!array_key_exists($relationship, $relationships)) {
+			$relationships[$relationship] = I18N::translate($relationship);
 		}
 
-		return self::selectEditControl($name, $rela_codes, '', $selected, $extra);
+		return $relationships;
+	}
+
+	/**
+	 * A list of registration rules (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsRegistrationRules() {
+		return [
+			0 => I18N::translate('No predefined text'),
+			1 => I18N::translate('Predefined text that states all users can request a user account'),
+			2 => I18N::translate('Predefined text that states admin will decide on each request for a user account'),
+			3 => I18N::translate('Predefined text that states only family members can request a user account'),
+			4 => I18N::translate('Choose user defined welcome text typed below'),
+		];
+	}
+
+	/**
+	 * A list of GEDCOM restrictions (e.g. for an edit control).
+	 *
+	 * @param bool $include_empty
+	 *
+	 * @return string[]
+	 */
+	public static function optionsRestrictions($include_empty) {
+		$options = [
+			'none'         => I18N::translate('Show to visitors'), // Not valid GEDCOM, but very useful
+			'privacy'      => I18N::translate('Show to members'),
+			'confidential' => I18N::translate('Show to managers'),
+			'locked'       => I18N::translate('Only managers can edit'),
+		];
+
+		if ($include_empty) {
+			$options = ['' => ''] + $options;
+		}
+
+		return $options;
+	}
+
+	/**
+	 * A list mail transport options (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsMailTransports() {
+		return [
+			'internal' => I18N::translate('Use PHP mail to send messages'),
+			'external' => I18N::translate('Use SMTP to send messages'),
+		];
+	}
+
+	/**
+	 * A list SSL modes (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsSslModes() {
+		return [
+			'none'                                                                        => I18N::translate('none'),
+			/* I18N: Secure Sockets Layer - a secure communications protocol*/ 'ssl'      => I18N::translate('ssl'),
+			/* I18N: Transport Layer Security - a secure communications protocol */ 'tls' => I18N::translate('tls'),
+		];
+	}
+
+	/**
+	 * A list of temple options (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsTemples() {
+		return ['' => I18N::translate('No temple - living ordinance')] + GedcomCodeTemp::templeNames();
+	}
+
+	/**
+	 * A list of user options (e.g. for an edit control).
+	 *
+	 * @return string[]
+	 */
+	public static function optionsUsers() {
+		$options = ['' => '-'];
+
+		foreach (User::all() as $user) {
+			$options[$user->getUserName()] = $user->getRealName() . ' - ' . $user->getUserName();
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Create a form control to select a family.
+	 *
+	 * @param Family|null   $family
+	 * @param string[]|null $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlFamily(Family $family = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($family !== null) {
+			$value   = $family->getXref();
+			$options = [$value => Select2::familyValue($family)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::familyConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select an individual.
+	 *
+	 * @param Individual|null $individual
+	 * @param string[]|null   $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlIndividual(Individual $individual = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($individual !== null) {
+			$value   = $individual->getXref();
+			$options = [$value => Select2::individualValue($individual)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::individualConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select a media object.
+	 *
+	 * @param Media|null    $media
+	 * @param string[]|null $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlMediaObject(Media $media = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($media !== null) {
+			$value   = $media->getXref();
+			$options = [$value => Select2::mediaObjectValue($media)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::mediaObjectConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select a note.
+	 *
+	 * @param Note|null     $note
+	 * @param string[]|null $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlNote(Note $note = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($note !== null) {
+			$value   = $note->getXref();
+			$options = [$value => Select2::noteValue($note)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::noteConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select a repository.
+	 *
+	 * @param Repository|null $repository
+	 * @param string[]|null   $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlRepository(Repository $repository = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($repository !== null) {
+			$value   = $repository->getXref();
+			$options = [$value => Select2::repositoryValue($repository)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::repositoryConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select a source.
+	 *
+	 * @param Source|null   $source
+	 * @param string[]|null $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlSource(Source $source = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($source !== null) {
+			$value   = $source->getXref();
+			$options = [$value => Select2::sourceValue($source)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::sourceConfig() + $attributes);
+	}
+
+	/**
+	 * Create a form control to select a submitter.
+	 *
+	 * @param GedcomRecord|null $submitter
+	 * @param string[]|null     $attributes
+	 *
+	 * @return string
+	 */
+	public static function formControlSubmitter(GedcomRecord $submitter = null, array $attributes = []) {
+		$value   = '';
+		$options = ['' => ''];
+
+		if ($submitter !== null) {
+			$value   = $submitter->getXref();
+			$options = [$value => Select2::submitterValue($submitter)];
+		}
+
+		return Bootstrap4::select($options, $value, Select2::submitterConfig() + $attributes);
 	}
 
 	/**
@@ -422,61 +457,6 @@ class FunctionsEdit {
 		return
 			' <a href="#" onclick="cal_toggleDate(\'caldiv' . $id . '\', \'' . $id . '\'); return false;" class="icon-button_calendar" title="' . I18N::translate('Select a date') . '"></a>' .
 			'<div id="caldiv' . $id . '" style="position:absolute;visibility:hidden;background-color:white;z-index:1000;"></div>';
-	}
-
-	/**
-	 * An HTML link to create a new media object.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printAddNewMediaLink($element_id) {
-		return '<a href="#" onclick="pastefield=document.getElementById(\'' . $element_id . '\'); window.open(\'addmedia.php?action=showmediaform\', \'_blank\', edit_window_specs); return false;" class="icon-button_addmedia" title="' . I18N::translate('Create a media object') . '"></a>';
-	}
-
-	/**
-	 * An HTML link to create a new repository.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printAddNewRepositoryLink($element_id) {
-		return '<a href="#" onclick="addnewrepository(document.getElementById(\'' . $element_id . '\')); return false;" class="icon-button_addrepository" title="' . I18N::translate('Create a repository') . '"></a>';
-	}
-
-	/**
-	 * An HTML link to create a new note.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printAddNewNoteLink($element_id) {
-		return '<a href="#" onclick="addnewnote(document.getElementById(\'' . $element_id . '\')); return false;" class="icon-button_addnote" title="' . I18N::translate('Create a shared note') . '"></a>';
-	}
-
-	/**
-	 * An HTML link to edit a note.
-	 *
-	 * @param string $note_id
-	 *
-	 * @return string
-	 */
-	public static function printEditNoteLink($note_id) {
-		return '<a href="#" onclick="edit_note(\'' . $note_id . '\'); return false;" class="icon-button_note" title="' . I18N::translate('Edit the shared note') . '"></a>';
-	}
-
-	/**
-	 * An HTML link to create a new source.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printAddNewSourceLink($element_id) {
-		return '<a href="#" onclick="addnewsource(document.getElementById(\'' . $element_id . '\')); return false;" class="icon-button_addsource" title="' . I18N::translate('Create a source') . '"></a>';
 	}
 
 	/**
@@ -550,17 +530,13 @@ class FunctionsEdit {
 		}
 
 		// label
-		echo '<tr id="', $element_id, '_tr"';
-		if ($fact === 'DATA' || $fact === 'MAP' || ($fact === 'LATI' || $fact === 'LONG') && $value === '') {
-			echo ' style="display:none;"';
-		}
-		echo '>';
+		echo '<div class="form-group row">';
+		// TODO - use CSS for this.
+		//if ($fact === 'DATA' || $fact === 'MAP' || ($fact === 'LATI' || $fact === 'LONG') && $value === '') {
+		//	echo ' style="display:none;"';
+		//}
 
-		if (in_array($fact, $subnamefacts) || $fact === 'LATI' || $fact === 'LONG') {
-			echo '<td class="optionbox wrap width25">';
-		} else {
-			echo '<td class="descriptionbox wrap width25">';
-		}
+		echo '<label class="col-sm-3 col-form-label" for="' . $element_id . '">';
 
 		// tag name
 		if ($label) {
@@ -598,20 +574,10 @@ class FunctionsEdit {
 			echo '<input type="hidden" name="islink[]" value="', $islink, '">';
 			echo '<input type="hidden" name="tag[]" value="', $fact, '">';
 		}
-		echo '</td>';
+		echo '</label>';
 
 		// value
-		echo '<td class="optionbox wrap">';
-
-		// retrieve linked NOTE
-		if ($fact === 'NOTE' && $islink) {
-			$note1 = Note::getInstance($value, $WT_TREE);
-			if ($note1) {
-				$noterec = $note1->getGedcom();
-				preg_match('/' . $value . '/i', $noterec, $notematch);
-				$value = $notematch[0];
-			}
-		}
+		echo '<div class="col-sm-9">';
 
 		// Show names for spouses in MARR/HUSB/AGE and MARR/WIFE/AGE
 		if ($fact === 'HUSB' || $fact === 'WIFE') {
@@ -629,14 +595,6 @@ class FunctionsEdit {
 
 		if (in_array($fact, Config::emptyFacts()) && ($value === '' || $value === 'Y' || $value === 'y')) {
 			echo '<input type="hidden" id="', $element_id, '" name="', $element_name, '" value="', $value, '">';
-			if ($level <= 1) {
-				echo '<input type="checkbox" ';
-				if ($value) {
-					echo 'checked';
-				}
-				echo ' onclick="document.getElementById(\'' . $element_id . '\').value = (this.checked) ? \'Y\' : \'\';">';
-				echo I18N::translate('yes');
-			}
 
 			if ($fact === 'CENS' && $value === 'Y') {
 				echo self::censusDateSelector(WT_LOCALE, $xref);
@@ -647,54 +605,75 @@ class FunctionsEdit {
 						'</a></div>';
 				}
 			}
-
-		} elseif ($fact === 'TEMP') {
-			echo self::selectEditControl($element_name, GedcomCodeTemp::templeNames(), I18N::translate('No temple - living ordinance'), $value);
 		} elseif ($fact === 'ADOP') {
-			echo self::editFieldAdoption($element_name, $value, '', $person);
+			echo Bootstrap4::select(GedcomCodeAdop::getValues($person), $value, ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === 'ALIA') {
+			echo self::formControlIndividual(Individual::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === 'ASSO' || $fact === '_ASSO') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" onclick="createNewRecord(' . $element_id . ')" title="' . I18N::translate('Create an individual') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlIndividual(Individual::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
+			if ($level === 1) {
+				echo '<p class="small text-muted">' . I18N::translate('An associate is another individual who was involved with this individual, such as a friend or an employer.') . '</p>';
+			} else {
+				echo '<p class="small text-muted">' . I18N::translate('An associate is another individual who was involved with this fact or event, such as a witness or a priest.') . '</p>';
+			}
+		} elseif ($fact === 'FAMC') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-family" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a family') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlFamily(Family::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
+		} elseif ($fact === 'OBJE') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-media-object" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a media object') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlMediaObject(Media::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
+		} elseif ($fact === 'NOTE' && $islink) {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-note-object" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a shared note') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlNote(Note::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
 		} elseif ($fact === 'PEDI') {
-			echo self::editFieldPedigree($element_name, $value, '', $person);
-		} elseif ($fact === 'STAT') {
-			echo self::selectEditControl($element_name, GedcomCodeStat::statusNames($upperlevel), '', $value);
-		} elseif ($fact === 'RELA') {
-			echo self::editFieldRelationship($element_name, strtolower($value));
+			echo Bootstrap4::select(GedcomCodePedi::getValues($person), $value, ['id' => $element_id, 'name' => $element_name]);
 		} elseif ($fact === 'QUAY') {
-			echo self::selectEditControl($element_name, GedcomCodeQuay::getValues(), '', $value);
-		} elseif ($fact === '_WT_USER') {
-			echo self::editFieldUsername($element_name, $value);
+			echo Bootstrap4::select(GedcomCodeQuay::getValues(), $value, ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === 'RELA') {
+			echo Bootstrap4::select(FunctionsEdit::optionsRelationships($value), $value, ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === 'REPO') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-repository" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a repository') . '"><i class="fa fa-plus"></i></button></span>' .				self::formControlRepository(Individual::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
 		} elseif ($fact === 'RESN') {
-			echo self::editFieldRestriction($element_name, $value);
-		} elseif ($fact === '_PRIM') {
-			echo '<select id="', $element_id, '" name="', $element_name, '" >';
-			echo '<option value=""></option>';
-			echo '<option value="Y" ';
-			if ($value === 'Y') {
-				echo ' selected';
-			}
-			echo '>', /* I18N: option in list box “always use this image” */
-			I18N::translate('always'), '</option>';
-			echo '<option value="N" ';
-			if ($value === 'N') {
-				echo 'selected';
-			}
-			echo '>', /* I18N: option in list box “never use this image” */
-			I18N::translate('never'), '</option>';
-			echo '</select>';
-			echo '<p class="small text-muted">', I18N::translate('Use this image for charts and on the individual’s page.'), '</p>';
+			echo Bootstrap4::select(FunctionsEdit::optionsRestrictions(true), $value, ['id' => $element_id, 'name' => $element_name]);
 		} elseif ($fact === 'SEX') {
-			echo '<select id="', $element_id, '" name="', $element_name, '"><option value="M" ';
-			if ($value === 'M') {
-				echo 'selected';
-			}
-			echo '>', I18N::translate('Male'), '</option><option value="F" ';
-			if ($value === 'F') {
-				echo 'selected';
-			}
-			echo '>', I18N::translate('Female'), '</option><option value="U" ';
-			if ($value === 'U' || empty($value)) {
-				echo 'selected';
-			}
-			echo '>', I18N::translateContext('unknown gender', 'Unknown'), '</option></select>';
+			echo Bootstrap4::radioButtons($element_name, ['M' => I18N::translate('Male'), 'F' => I18N::translate('Female'), 'U' => I18N::translateContext('unknown gender', 'Unknown')], $value, true);
+		} elseif ($fact === 'SOUR') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-source" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a source') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlSource(Source::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
+		} elseif ($fact === 'STAT') {
+			echo Bootstrap4::select(GedcomCodeStat::statusNames($upperlevel), $value);
+		} elseif ($fact === 'SUBM') {
+			echo
+				'<div class="input-group">' .
+				'<span class="input-group-btn"><button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#modal-create-submitter" data-element-id="' . $element_id . '" title="' . I18N::translate('Create a submitter') . '"><i class="fa fa-plus"></i></button></span>' .
+				self::formControlSubmitter(GedcomRecord::getInstance($value, $WT_TREE), ['id' => $element_id, 'name' => $element_name]) .
+				'</div>';
+		} elseif ($fact === 'TEMP') {
+			echo Bootstrap4::select(FunctionsEdit::optionsTemples(), $value, ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === '_WT_USER') {
+			echo Bootstrap4::select(FunctionsEdit::optionsUsers(), $value, ['id' => $element_id, 'name' => $element_name]);
+		} elseif ($fact === '_PRIM') {
+			echo Bootstrap4::select(['' => '', 'Y' => I18N::translate('always'), 'N' => I18N::translate('never')], $value, ['id' => $element_id, 'name' => $element_name]);
+			echo '<p class="small text-muted">', I18N::translate('Use this image for charts and on the individual’s page.'), '</p>';
 		} elseif ($fact === 'TYPE' && $level === 3) {
 			//-- Build the selector for the Media 'TYPE' Fact
 			echo '<select name="text[]"><option selected value="" ></option>';
@@ -710,35 +689,19 @@ class FunctionsEdit {
 				echo '>', $typeValue, '</option>';
 			}
 			echo '</select>';
-		} elseif (($fact === 'NAME' && $upperlevel !== 'REPO' && $upperlevel !== 'UNKNOWN') || $fact === '_MARNM') {
-			// Populated in javascript from sub-tags
-			echo '<input type="hidden" id="', $element_id, '" name="', $element_name, '" onchange="updateTextName(\'', $element_id, '\');" value="', Filter::escapeHtml($value), '" class="', $fact, '">';
-			echo '<span id="', $element_id, '_display" dir="auto">', Filter::escapeHtml($value), '</span>';
-			echo ' <a href="#edit_name" onclick="convertHidden(\'', $element_id, '\'); return false;" class="icon-edit_indi" title="' . I18N::translate('Edit the name') . '"></a>';
-		} else {
-			// textarea
+		} elseif (($fact !== 'NAME' || $upperlevel === 'REPO' || $upperlevel === 'UNKNOWN') && $fact !== '_MARNM') {
 			if ($fact === 'TEXT' || $fact === 'ADDR' || ($fact === 'NOTE' && !$islink)) {
-				echo '<textarea id="', $element_id, '" name="', $element_name, '" dir="auto">', Filter::escapeHtml($value), '</textarea><br>';
+				echo '<textarea class="form-control" id="', $element_id, '" name="', $element_name, '" dir="auto">', Filter::escapeHtml($value), '</textarea><br>';
 			} else {
 				// text
 				// If using GEDFact-assistant window
-				if ($action === 'addnewnote_assisted') {
-					echo '<input type="text" id="', $element_id, '" name="', $element_name, '" value="', Filter::escapeHtml($value), '" style="width:4.1em;" dir="ltr"';
-				} else {
-					echo '<input type="text" id="', $element_id, '" name="', $element_name, '" value="', Filter::escapeHtml($value), '" dir="ltr"';
-				}
-				echo ' class="', $fact, '"';
+				echo '<input class="form-control" type="text" id="', $element_id, '" name="', $element_name, '" value="', Filter::escapeHtml($value), '"';
 				if (in_array($fact, $subnamefacts)) {
 					echo ' onblur="updatewholename();" onkeyup="updatewholename();"';
 				}
 
 				// Extra markup for specific fact types
 				switch ($fact) {
-				case 'ALIA':
-				case 'ASSO':
-				case '_ASSO':
-					echo ' data-autocomplete-type="ASSO" data-autocomplete-extra="input.DATE"';
-					break;
 				case 'DATE':
 					echo ' onblur="valid_date(this);" onmouseout="valid_date(this);"';
 					break;
@@ -751,25 +714,11 @@ class FunctionsEdit {
 				case 'LONG':
 					echo ' onblur="valid_lati_long(this, \'E\', \'W\');" onmouseout="valid_lati_long(this, \'E\', \'W\');"';
 					break;
-				case 'NOTE':
-					// Shared notes. Inline notes are handled elsewhere.
-					echo ' data-autocomplete-type="NOTE"';
-					break;
-				case 'OBJE':
-					echo ' data-autocomplete-type="OBJE"';
-					break;
 				case 'PAGE':
 					echo ' data-autocomplete-type="PAGE" data-autocomplete-extra="#' . $source_element_id . '"';
 					break;
 				case 'PLAC':
 					echo ' data-autocomplete-type="PLAC"';
-					break;
-				case 'REPO':
-					echo ' data-autocomplete-type="REPO"';
-					break;
-				case 'SOUR':
-					$source_element_id = $element_id;
-					echo ' data-autocomplete-type="SOUR"';
 					break;
 				case 'SURN':
 				case '_MARNM_SURN':
@@ -783,12 +732,11 @@ class FunctionsEdit {
 				echo '>';
 			}
 
-			$tmp_array = ['TYPE', 'TIME', 'NOTE', 'SOUR', 'REPO', 'OBJE', 'ASSO', '_ASSO', 'AGE'];
+			$tmp_array = ['TYPE', 'TIME', 'NOTE', 'SOUR', 'OBJE', 'ASSO', '_ASSO', 'AGE'];
 
 			// split PLAC
 			if ($fact === 'PLAC') {
 				echo '<div id="', $element_id, '_pop" style="display: inline;">';
-				echo FunctionsPrint::printSpecialCharacterLink($element_id), ' ', FunctionsPrint::printFindPlaceLink($element_id);
 				echo '<span  onclick="$(\'tr[id^=', $upperlevel, '_LATI],tr[id^=', $upperlevel, '_LONG],tr[id^=LATI],tr[id^=LONG]\').toggle(\'fast\'); return false;" class="icon-target" title="', I18N::translate('Latitude'), ' / ', I18N::translate('Longitude'), '"></span>';
 				echo '</div>';
 				if (Module::getModuleByName('places_assistant')) {
@@ -798,6 +746,11 @@ class FunctionsEdit {
 			} elseif (!in_array($fact, $tmp_array)) {
 				echo FunctionsPrint::printSpecialCharacterLink($element_id);
 			}
+		} else {
+			// Populated in javascript from sub-tags
+			echo '<input type="hidden" id="', $element_id, '" name="', $element_name, '" onchange="updateTextName(\'', $element_id, '\');" value="', Filter::escapeHtml($value), '" class="', $fact, '">';
+			echo '<span id="', $element_id, '_display" dir="auto">', Filter::escapeHtml($value), '</span>';
+			echo ' <a href="#edit_name" onclick="convertHidden(\'', $element_id, '\'); return false;" class="icon-edit_indi" title="' . I18N::translate('Edit the name') . '"></a>';
 		}
 		// MARRiage TYPE : hide text field and show a selection list
 		if ($fact === 'TYPE' && $level === 2 && $tags[0] === 'MARR') {
@@ -821,9 +774,7 @@ class FunctionsEdit {
 			echo '</select>';
 		} elseif ($fact === 'TYPE' && $level === 0) {
 			// NAME TYPE : hide text field and show a selection list
-			$onchange = 'onchange="document.getElementById(\'' . $element_id . '\').value=this.value;"';
-			echo self::editFieldNameType($element_name, $value, $onchange, $person);
-			echo '<script>document.getElementById("', $element_id, '").style.display="none";</script>';
+			echo Bootstrap4::select(GedcomCodeName::getValues($person), $value, ['id' => $element_id, 'name' => $element_name]);
 		}
 
 		// popup links
@@ -831,20 +782,7 @@ class FunctionsEdit {
 		case 'DATE':
 			echo self::printCalendarPopup($element_id);
 			break;
-		case 'FAMC':
-		case 'FAMS':
-			echo FunctionsPrint::printFindFamilyLink($element_id);
-			break;
-		case 'ALIA':
-		case 'ASSO':
-		case '_ASSO':
-			echo FunctionsPrint::printFindIndividualLink($element_id, $element_id . '_description');
-			break;
-		case 'FILE':
-			FunctionsPrint::printFindMediaLink($element_id, '0file');
-			break;
 		case 'SOUR':
-			echo FunctionsPrint::printFindSourceLink($element_id, $element_id . '_description'), ' ', self::printAddNewSourceLink($element_id);
 			//-- checkboxes to apply '1 SOUR' to BIRT/MARR/DEAT as '2 SOUR'
 			if ($level === 1) {
 				echo '<br>';
@@ -892,26 +830,6 @@ class FunctionsEdit {
 					}
 				}
 				break;
-		case 'REPO':
-			echo FunctionsPrint::printFindRepositoryLink($element_id), ' ', self::printAddNewRepositoryLink($element_id);
-			break;
-		case 'NOTE':
-			// Shared Notes Icons ========================================
-			if ($islink) {
-				// Print regular Shared Note icons ---------------------------
-				echo ' ', FunctionsPrint::printFindNoteLink($element_id, $element_id . '_description'), ' ', self::printAddNewNoteLink($element_id);
-				if ($value) {
-					echo ' ', self::printEditNoteLink($value);
-				}
-			}
-			break;
-		case 'OBJE':
-			echo FunctionsPrint::printFindMediaLink($element_id, '1media');
-			if (!$value) {
-				echo ' ', self::printAddNewMediaLink($element_id);
-				$value = 'new';
-			}
-			break;
 		}
 
 		echo '<div id="' . $element_id . '_description">';
@@ -921,56 +839,12 @@ class FunctionsEdit {
 			$date = new Date($value);
 			echo $date->display();
 		}
-		if (($fact === 'ASSO' || $fact === '_ASSO') && $value === '') {
-			if ($level === 1) {
-				echo '<p class="small text-muted">' . I18N::translate('An associate is another individual who was involved with this individual, such as a friend or an employer.') . '</p>';
-			} else {
-				echo '<p class="small text-muted">' . I18N::translate('An associate is another individual who was involved with this fact or event, such as a witness or a priest.') . '</p>';
-			}
-		}
-
-		if ($value && $value !== 'new' && $islink) {
-			switch ($fact) {
-			case 'ALIA':
-			case 'ASSO':
-			case '_ASSO':
-				$tmp = Individual::getInstance($value, $WT_TREE);
-				if ($tmp) {
-					echo ' ', $tmp->getFullName();
-				}
-				break;
-			case 'SOUR':
-				$tmp = Source::getInstance($value, $WT_TREE);
-				if ($tmp) {
-					echo ' ', $tmp->getFullName();
-				}
-				break;
-			case 'NOTE':
-				$tmp = Note::getInstance($value, $WT_TREE);
-				if ($tmp) {
-					echo ' ', $tmp->getFullName();
-				}
-				break;
-			case 'OBJE':
-				$tmp = Media::getInstance($value, $WT_TREE);
-				if ($tmp) {
-					echo ' ', $tmp->getFullName();
-				}
-				break;
-			case 'REPO':
-				$tmp = Repository::getInstance($value, $WT_TREE);
-				if ($tmp) {
-					echo ' ', $tmp->getFullName();
-				}
-				break;
-			}
-		}
 
 		// pastable values
 		if ($fact === 'FORM' && $upperlevel === 'OBJE') {
 			FunctionsPrint::printAutoPasteLink($element_id, Config::fileFormats());
 		}
-		echo '</div>', $extra, '</td></tr>';
+		echo '</div>', $extra, '</div></div>';
 
 		return $element_id;
 	}
@@ -1019,26 +893,26 @@ class FunctionsEdit {
 
 		$controller->addInlineJavascript('
 				function selectCensus(el) {
-					var option = jQuery(":selected", el);
-					jQuery("input.DATE", jQuery(el).closest("table")).val(option.val());
-					jQuery("input.PLAC", jQuery(el).closest("table")).val(option.data("place"));
-					jQuery("input.census-class", jQuery(el).closest("table")).val(option.data("census"));
+					var option = $(":selected", el);
+					$("input.DATE", $(el).closest("table")).val(option.val());
+					$("input.PLAC", $(el).closest("table")).val(option.data("place"));
+					$("input.census-class", $(el).closest("table")).val(option.data("census"));
 					if (option.data("place")) {
-						jQuery("#assistant-link").show();
+						$("#assistant-link").show();
 					} else {
-						jQuery("#assistant-link").hide();
+						$("#assistant-link").hide();
 					}
 				}
 				function set_pid_array(pa) {
-					jQuery("#pid_array").val(pa);
+					$("#pid_array").val(pa);
 				}
 				function activateCensusAssistant() {
-					if (jQuery("#newshared_note_img").hasClass("icon-plus")) {
+					if ($("#newshared_note_img").hasClass("icon-plus")) {
 						expand_layer("newshared_note");
 					}
-					var field  = jQuery("#newshared_note input.NOTE")[0];
-					var xref   = jQuery("input[name=xref]").val();
-					var census = jQuery(".census-assistant-selector :selected").data("census");
+					var field  = $("#newshared_note input.NOTE")[0];
+					var xref   = $("input[name=xref]").val();
+					var census = $(".census-assistant-selector :selected").data("census");
 					return addnewnote_assisted(field, xref, census);
 				}
 			');
@@ -1064,7 +938,7 @@ class FunctionsEdit {
 	 * Prints collapsable fields to add ASSO/RELA, SOUR, OBJE, etc.
 	 *
 	 * @param string $tag
-	 * @param int $level
+	 * @param int    $level
 	 * @param string $parent_tag
 	 */
 	public static function printAddLayer($tag, $level = 2, $parent_tag = '') {
@@ -1072,95 +946,48 @@ class FunctionsEdit {
 
 		switch ($tag) {
 		case 'SOUR':
-			echo '<a href="#" onclick="return expand_layer(\'newsource\');"><i id="newsource_img" class="icon-plus"></i> ', I18N::translate('Add a source citation'), '</a>';
-			echo '<br>';
-			echo '<div id="newsource" style="display: none;">';
-			echo '<table class="facts_table">';
-			// 2 SOUR
+			echo '<h3>', I18N::translate('Add a source citation'), '</h3>';
 			self::addSimpleTag($level . ' SOUR @');
-			// 3 PAGE
 			self::addSimpleTag(($level + 1) . ' PAGE');
-			// 3 DATA
 			self::addSimpleTag(($level + 1) . ' DATA');
-			// 4 TEXT
 			self::addSimpleTag(($level + 2) . ' TEXT');
 			if ($WT_TREE->getPreference('FULL_SOURCES')) {
-				// 4 DATE
 				self::addSimpleTag(($level + 2) . ' DATE', '', GedcomTag::getLabel('DATA:DATE'));
-				// 3 QUAY
 				self::addSimpleTag(($level + 1) . ' QUAY');
 			}
-			// 3 OBJE
 			self::addSimpleTag(($level + 1) . ' OBJE');
-			// 3 SHARED_NOTE
 			self::addSimpleTag(($level + 1) . ' SHARED_NOTE');
-			echo '</table></div>';
 			break;
 
 		case 'ASSO':
 		case 'ASSO2':
-			//-- Add a new ASSOciate
-			if ($tag === 'ASSO') {
-				echo "<a href=\"#\" onclick=\"return expand_layer('newasso');\"><i id=\"newasso_img\" class=\"icon-plus\"></i> ", I18N::translate('Add an associate'), '</a>';
-				echo '<br>';
-				echo '<div id="newasso" style="display: none;">';
-			} else {
-				echo "<a href=\"#\" onclick=\"return expand_layer('newasso2');\"><i id=\"newasso2_img\" class=\"icon-plus\"></i> ", I18N::translate('Add an associate'), '</a>';
-				echo '<br>';
-				echo '<div id="newasso2" style="display: none;">';
-			}
-			echo '<table class="facts_table">';
-			// 2 ASSO
+			echo '<h3>', I18N::translate('Add an associate'), '</h3>';
 			self::addSimpleTag($level . ' _ASSO @');
-			// 3 RELA
 			self::addSimpleTag(($level + 1) . ' RELA');
-			// 3 NOTE
 			self::addSimpleTag(($level + 1) . ' NOTE');
-			// 3 SHARED_NOTE
 			self::addSimpleTag(($level + 1) . ' SHARED_NOTE');
-			echo '</table></div>';
 			break;
 
 		case 'NOTE':
-			//-- Retrieve existing note or add new note to fact
-			echo "<a href=\"#\" onclick=\"return expand_layer('newnote');\"><i id=\"newnote_img\" class=\"icon-plus\"></i> ", I18N::translate('Add a note'), '</a>';
-			echo '<br>';
-			echo '<div id="newnote" style="display: none;">';
-			echo '<table class="facts_table">';
-			// 2 NOTE
+			echo '<h3>', I18N::translate('Add a note'), '</h3>';
 			self::addSimpleTag($level . ' NOTE');
-			echo '</table></div>';
 			break;
 
 		case 'SHARED_NOTE':
-			echo "<a href=\"#\" onclick=\"return expand_layer('newshared_note');\"><i id=\"newshared_note_img\" class=\"icon-plus\"></i> ", I18N::translate('Add a shared note'), '</a>';
-			echo '<br>';
-			echo '<div id="newshared_note" style="display: none;">';
-			echo '<table class="facts_table">';
-			// 2 SHARED NOTE
+			echo '<h3>', I18N::translate('Add a shared note'), '</h3>';
 			self::addSimpleTag($level . ' SHARED_NOTE', $parent_tag);
-			echo '</table></div>';
 			break;
 
 		case 'OBJE':
 			if ($WT_TREE->getPreference('MEDIA_UPLOAD') >= Auth::accessLevel($WT_TREE)) {
-				echo "<a href=\"#\" onclick=\"return expand_layer('newobje');\"><i id=\"newobje_img\" class=\"icon-plus\"></i> ", I18N::translate('Add a media object'), '</a>';
-				echo '<br>';
-				echo '<div id="newobje" style="display: none;">';
-				echo '<table class="facts_table">';
+				echo '<h3>', I18N::translate('Add a media object'), '</h3>';
 				self::addSimpleTag($level . ' OBJE');
-				echo '</table></div>';
 			}
 			break;
 
 		case 'RESN':
-			echo "<a href=\"#\" onclick=\"return expand_layer('newresn');\"><i id=\"newresn_img\" class=\"icon-plus\"></i> ", I18N::translate('Add a restriction'), '</a>';
-			echo '<br>';
-			echo '<div id="newresn" style="display: none;">';
-			echo '<table class="facts_table">';
-			// 2 RESN
+			echo '<h3>', I18N::translate('Add a restriction'), '</h3>';
 			self::addSimpleTag($level . ' RESN');
-			echo '</table></div>';
 			break;
 		}
 	}
@@ -1828,5 +1655,221 @@ class FunctionsEdit {
 				}
 			}
 		}
+	}
+
+	/**
+	 * A simple form create the essential fields of new records.
+	 *
+	 * @param Tree $tree
+	 *
+	 * @return string
+	 */
+	public static function createRecordFormModals(Tree $tree) {
+		?>
+
+		<!-- Form to create a new family -->
+		<div class="modal wt-modal-create-record" id="modal-create-family">
+			<form id="form-create-family"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-family">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a family from existing individuals') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="husband">
+									<?= I18N::translate('Husband') ?>
+								</label>
+								<?= self::formControlIndividual(null, ['id' => 'husband', 'name' => 'husband']) ?>
+							</div>
+							<div class="form-group">
+								<label class="form-control-label" for="wife">
+									<?= I18N::translate('Wife') ?>
+								</label>
+								<?= self::formControlIndividual(null, ['id' => 'wife', 'name' => 'wife']) ?>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Form to create a new media object -->
+		<div class="modal wt-modal-create-record" id="modal-create-media-object">
+			<form id="form-create-media-object"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-media-object">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a media object') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="file">
+									<?= I18N::translate('File') ?>
+								</label>
+								<input type="file" class="form-control-file" id="file" name="file">
+							</div>
+							<div class="form-group">
+								<label class="form-control-label" for="note">
+									<?= I18N::translate('Note') ?>
+								</label>
+								<textarea class="form-control" id="note" name="note"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Form to create a new note object -->
+		<div class="modal wt-modal-create-record" id="modal-create-note-object">
+			<form id="form-create-note-object"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-note-object">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a shared note') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="note">
+									<?= GedcomTag::getLabel('NOTE') ?>
+								</label>
+								<textarea class="form-control" id="note" name="note"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Form to create a new repository -->
+		<div class="modal wt-modal-create-record" id="modal-create-repository">
+			<form id="form-create-repository"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-repository">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a repository') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="repository-name">
+									<?= GedcomTag::getLabel('REPO:NAME') ?>
+								</label>
+								<input class="form-control" type="text" id="repository-name" name="repository_name" required>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Form to create a new source -->
+		<div class="modal wt-modal-create-record" id="modal-create-source">
+			<form id="form-create-source"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-source">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a source') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="source-title">
+									<?= GedcomTag::getLabel('SOUR:TITL') ?>
+								</label>
+								<input class="form-control" type="text" id="source-title" name="source_title" required>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Form to create a new submitter -->
+		<div class="modal wt-modal-create-record" id="modal-create-submitter">
+			<form id="form-create-submitter"><!-- This form is posted using jQuery -->
+				<?= Filter::getCsrf() ?>
+				<input type="hidden" name="action" value="create-submitter">
+				<input type="hidden" name="ged" value="<?= $tree->getNameHtml() ?>">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3 class="modal-title"><?= I18N::translate('Create a submitter') ?></h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="<?= I18N::translate('close') ?>">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label class="form-control-label" for="submitter-name">
+									<?= GedcomTag::getLabel('SUBM:NAME') ?>
+								</label>
+								<input class="form-control" type="text" id="submitter-name" name="submitter_name" required>
+							</div>
+							<div class="form-group">
+								<label class="form-control-label" for="submitter-address">
+									<?= GedcomTag::getLabel('SUBM:ADDR') ?>
+								</label>
+								<input class="form-control" type="text" id="submitter-address" name="submitter_address">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-primary"><?= I18N::translate('save') ?></button>
+							<button type="button" class="btn btn-text" data-dismiss="modal"><?= I18N::translate('cancel') ?></button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<?php
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,24 +28,7 @@ class FabTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string A relative path, such as "themes/foo/"
 	 */
 	public function assetUrl() {
-		return 'themes/fab/css-1.7.8/';
-	}
-
-	/**
-	 * Add markup to a flash message.
-	 *
-	 * @param \stdClass $message
-	 *
-	 * @return string
-	 */
-	protected function flashMessageContainer(\stdClass $message) {
-		// This theme uses jQueryUI markup.
-		switch ($message->status) {
-		case 'danger':
-			return '<p class="ui-state-error">' . $message->text . '</p>';
-		default:
-			return '<p class="ui-state-highlight">' . $message->text . '</p>';
-		}
+		return 'themes/fab/css-1.8.0/';
 	}
 
 	/**
@@ -55,35 +38,12 @@ class FabTheme extends AbstractTheme implements ThemeInterface {
 	 */
 	protected function formatSecondaryMenu() {
 		return
-			'<ul class="secondary-menu">' .
-			implode('', $this->secondaryMenu()) .
+			'<ul class="nav wt-secondary-menu justify-content-end">' .
+			implode('', array_map(function (Menu $menu) { return $menu->bootstrap4(); }, $this->secondaryMenu())) .
 			'<li>' .
 			$this->formQuickSearch() .
 			'</li>' .
 			'</ul>';
-	}
-
-	/**
-	 * Create the contents of the <header> tag.
-	 *
-	 * @return string
-	 */
-	protected function headerContent() {
-		return
-			//$this->accessibilityLinks() .
-			$this->formatTreeTitle() .
-			$this->formatSecondaryMenu();
-	}
-
-	/**
-	 * Add markup to an item in the secondary menu.
-	 *
-	 * @param Menu $menu
-	 *
-	 * @return string
-	 */
-	protected function formatSecondaryMenuItem(Menu $menu) {
-		return $menu->getMenuAsList();
 	}
 
 	/**
@@ -113,7 +73,7 @@ class FabTheme extends AbstractTheme implements ThemeInterface {
 			' transition: "none",' .
 			' slideshowStart: "' . I18N::translate('Play') . '",' .
 			' slideshowStop: "' . I18N::translate('Stop') . '",' .
-			' title: function() { return jQuery(this).data("title"); }' .
+			' title: function() { return $(this).data("title"); }' .
 			'});' .
 			'</script>';
 	}
@@ -148,10 +108,9 @@ class FabTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string[]
 	 */
 	protected function stylesheets() {
-		return [
-			'themes/fab/jquery-ui-1.11.2/jquery-ui.css',
-			$this->assetUrl() . 'style.css',
-		];
+		return parent::stylesheets() + [
+				$this->assetUrl() . 'style.css',
+			];
 	}
 
 	/**

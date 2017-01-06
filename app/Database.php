@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -127,60 +127,6 @@ class Database {
 	}
 
 	/**
-	 * Log the details of a query, for debugging and analysis.
-	 *
-	 * @param string   $query
-	 * @param int      $rows
-	 * @param float    $microtime
-	 * @param string[] $bind_variables
-	 */
-	public static function logQuery($query, $rows, $microtime, $bind_variables) {
-		if (WT_DEBUG_SQL) {
-			// Full logging
-			// Trace
-			$trace = debug_backtrace();
-			array_shift($trace);
-			array_shift($trace);
-			foreach ($trace as $n => $frame) {
-				if (isset($frame['file']) && isset($frame['line'])) {
-					$trace[$n] = basename($frame['file']) . ':' . $frame['line'] . ' ' . $frame['function'];
-				} else {
-					unset($trace[$n]);
-				}
-			}
-			$stack = '<abbr title="' . Filter::escapeHtml(implode(' / ', $trace)) . '">' . (count(self::$log) + 1) . '</abbr>';
-			// Bind variables
-			foreach ($bind_variables as $key => $value) {
-				if (is_null($value)) {
-					$value = 'NULL';
-				} elseif (!is_integer($value)) {
-					$value = '\'' . $value . '\'';
-				}
-				if (is_integer($key)) {
-					$query = preg_replace('/\?/', $value, $query, 1);
-				} else {
-					$query = str_replace(':' . $key, $value, $query);
-				}
-			}
-			// Highlight slow queries
-			$microtime *= 1000; // convert to milliseconds
-			if ($microtime > 1000) {
-				$microtime = sprintf('<span style="background-color: #ff0000;">%.3f</span>', $microtime);
-			} elseif ($microtime > 100) {
-				$microtime = sprintf('<span style="background-color: #ffa500;">%.3f</span>', $microtime);
-			} elseif ($microtime > 1) {
-				$microtime = sprintf('<span style="background-color: #ffff00;">%.3f</span>', $microtime);
-			} else {
-				$microtime = sprintf('%.3f', $microtime);
-			}
-			self::$log[] = "<tr><td>{$stack}</td><td>{$query}</td><td>{$rows}</td><td>{$microtime}</td></tr>";
-		} else {
-			// Just log query count for statistics
-			self::$log[] = true;
-		}
-	}
-
-	/**
 	 * Determine the number of queries executed, for the page statistics.
 	 *
 	 * @return int
@@ -237,11 +183,8 @@ class Database {
 	 * @return int The number of rows affected by this SQL query
 	 */
 	public static function exec($sql) {
-		$sql   = str_replace('##', WT_TBLPREFIX, $sql);
-		$start = microtime(true);
-		$rows  = self::$pdo->exec($sql);
-		$end   = microtime(true);
-		self::logQuery($sql, $rows, $end - $start, []);
+		$sql  = str_replace('##', WT_TBLPREFIX, $sql);
+		$rows = self::$pdo->exec($sql);
 
 		return $rows;
 	}
@@ -306,7 +249,8 @@ class Database {
 				/** @var MigrationInterface $migration */
 				$migration = new $class;
 				$migration->upgrade();
-				Site::setPreference($schema_name, ++$current_version);
+				$current_version++;
+				Site::setPreference($schema_name, (string) $current_version);
 				$updates_applied = true;
 			}
 		} catch (PDOException $ex) {

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,22 +18,18 @@ namespace Fisharebest\Webtrees;
 use Fisharebest\Webtrees\Controller\SearchController;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 
-define('WT_SCRIPT_NAME', 'search.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
 
 $controller = new SearchController;
-$controller
-	->pageHeader()
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();');
+$controller->pageHeader();
 
 ?>
 <script>
 function checknames(frm) {
-	action = "<?php echo $controller->action; ?>";
+	action = "<?= $controller->action ?>";
 	if (action === "general") {
 		if (frm.query.value.length<2) {
-			alert("<?php echo I18N::translate('Please enter more than one character.'); ?>");
+			alert("<?= I18N::translate('Please enter more than one character.') ?>");
 			frm.query.focus();
 			return false;
 		}
@@ -45,14 +41,14 @@ function checknames(frm) {
 
 		if (year == "") {
 			if (fname.length < 2 && lname.length < 2 && place.length < 2) {
-				alert("<?php echo I18N::translate('Please enter more than one character.'); ?>");
+				alert("<?= I18N::translate('Please enter more than one character.') ?>");
 				return false;
 			}
 		}
 
 		if (year != "") {
 			if (fname === "" && lname === "" && place === "") {
-				alert("<?php echo I18N::translate('Please enter a given name, surname, or place in addition to the year'); ?>");
+				alert("<?= I18N::translate('Please enter a given name, surname, or place in addition to the year') ?>");
 				frm.firstname.focus();
 				return false;
 			}
@@ -64,7 +60,7 @@ function checknames(frm) {
 </script>
 
 <div id="search-page">
-<h2><?php echo $controller->getPageTitle(); ?></h2>
+<h2><?= $controller->getPageTitle() ?></h2>
 
 <?php if ($controller->action === 'general'): ?>
 
@@ -73,79 +69,79 @@ function checknames(frm) {
 		<input type="hidden" name="isPostBack" value="true">
 		<div id="search-page-table">
 			<div class="label">
-				<?php echo I18N::translate('Search for'); ?>
+				<?= I18N::translate('Search for') ?>
 			</div>
 			<div class="value">
-				<input id="query" type="text" name="query" value="<?php echo Filter::escapeHtml($controller->query); ?>" size="40" autofocus>
-				<?php echo FunctionsPrint::printSpecialCharacterLink('query'); ?>
+				<input id="query" type="text" name="query" value="<?= Filter::escapeHtml($controller->query) ?>" size="40" autofocus>
+				<?= FunctionsPrint::printSpecialCharacterLink('query') ?>
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Records'); ?>
+				<?= I18N::translate('Records') ?>
 			</div>
 			<div class="value">
 				<label>
-					<input type="checkbox" <?php echo $controller->srindi; ?> value="checked" name="srindi">
-					<?php echo I18N::translate('Individuals'); ?>
+					<input type="checkbox" <?= $controller->srindi ?> value="checked" name="srindi">
+					<?= I18N::translate('Individuals') ?>
 				</label>
 				<br>
 				<label>
-					<input type="checkbox" <?php echo $controller->srfams; ?> value="checked" name="srfams">
-					<?php echo I18N::translate('Families'); ?>
+					<input type="checkbox" <?= $controller->srfams ?> value="checked" name="srfams">
+					<?= I18N::translate('Families') ?>
 				</label>
 				<br>
 				<label>
-					<input type="checkbox" <?php echo $controller->srsour; ?> value="checked" name="srsour">
-					<?php echo I18N::translate('Sources'); ?>
+					<input type="checkbox" <?= $controller->srsour ?> value="checked" name="srsour">
+					<?= I18N::translate('Sources') ?>
 				</label>
 				<br>
 				<label>
-					<input type="checkbox" <?php echo $controller->srnote; ?> value="checked" name="srnote">
-					<?php echo I18N::translate('Shared notes'); ?>
+					<input type="checkbox" <?= $controller->srnote ?> value="checked" name="srnote">
+					<?= I18N::translate('Shared notes') ?>
 				</label>
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Associates'); ?>
+				<?= I18N::translate('Associates') ?>
 			</div>
 			<div class="value">
-				<input type="checkbox" id="showasso" name="showasso" value="on" <?php echo $controller->showasso === 'on' ? 'checked' : ''; ?>>
+				<input type="checkbox" id="showasso" name="showasso" value="on" <?= $controller->showasso === 'on' ? 'checked' : '' ?>>
 				<label for="showasso">
-					<?php echo I18N::translate('Show related individuals/families'); ?>
+					<?= I18N::translate('Show related individuals/families') ?>
 				</label>
 			</div>
-			<?php if (count(Tree::getAll()) > 1 && Site::getPreference('ALLOW_CHANGE_GEDCOM')): ?>
+			<?php if (count(Tree::getAll()) > 1 && Site::getPreference('ALLOW_CHANGE_GEDCOM') === '1'): ?>
 			<?php if (count(Tree::getAll()) > 3): ?>
 			<div class="label"></div>
 			<div class="value">
-				<input type="button" value="<?php echo /* I18N: select all (of the family trees) */ I18N::translate('select all'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', true);});return false;">
-				<input type="button" value="<?php echo /* I18N: select none (of the family trees) */ I18N::translate('select none'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', false);});return false;">
+				<input type="button" value="<?= /* I18N: select all (of the family trees) */ I18N::translate('select all') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', true);});return false;">
+				<input type="button" value="<?= /* I18N: select none (of the family trees) */ I18N::translate('select none') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', false);});return false;">
 				<?php if (count(Tree::getAll()) > 10): ?>
-				<input type="button" value="<?php echo I18N::translate('invert selection'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', !jQuery(this).attr('checked'));});return false;">
-				<?php endif; ?>
+				<input type="button" value="<?= I18N::translate('invert selection') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', !$(this).attr('checked'));});return false;">
+				<?php endif ?>
 				</div>
-			<?php endif; ?>
+			<?php endif ?>
 			<div class="label">
-				<?php echo I18N::translate('Family trees'); ?>
+				<?= I18N::translate('Family trees') ?>
 			</div>
 			<div id="search_trees" class="value">
 				<?php foreach (Tree::getAll() as $tree): ?>
 				<p>
-					<input type="checkbox" <?php echo in_array($tree, $controller->search_trees) ? 'checked' : ''; ?> value="yes" id="tree_<?php echo $tree->getTreeId(); ?>" name="tree_<?php echo $tree->getTreeId(); ?>">
-					<label for="tree_'<?php echo $tree->getTreeId(); ?>">
-						<?php echo $tree->getTitleHtml(); ?>
+					<input type="checkbox" <?= in_array($tree, $controller->search_trees) ? 'checked' : '' ?> value="yes" id="tree_<?= $tree->getTreeId() ?>" name="tree_<?= $tree->getTreeId() ?>">
+					<label for="tree_'<?= $tree->getTreeId() ?>">
+						<?= $tree->getTitleHtml() ?>
 					</label>
 				</p>
-				<?php endforeach; ?>
+				<?php endforeach ?>
 			</div>
-			<?php endif; ?>
+			<?php endif ?>
 
 			<div class="label"></div>
 			<div class="value">
-				<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('search'); ?>">
+				<input type="submit" value="<?= /* I18N: A button label. */ I18N::translate('search') ?>">
 			</div>
 		</div>
 	</form>
 
-<?php endif; ?>
+<?php endif ?>
 <?php if ($controller->action === 'replace'): ?>
 
 	<form method="post" name="searchform" onsubmit="return checknames(this);">
@@ -153,16 +149,16 @@ function checknames(frm) {
 		<input type="hidden" name="isPostBack" value="true">
 		<div id="search-page-table">
 			<div class="label">
-				<?php echo I18N::translate('Search for'); ?>
+				<?= I18N::translate('Search for') ?>
 			</div>
 			<div class="value">
-				<input name="query" value="<?php echo Filter::escapeHtml($controller->query); ?>" type="text" autofocus>
+				<input name="query" value="<?= Filter::escapeHtml($controller->query) ?>" type="text" autofocus>
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Replace with'); ?>
+				<?= I18N::translate('Replace with') ?>
 			</div>
 			<div class="value">
-				<input name="replace" value="<?php echo Filter::escapeHtml($controller->replace); ?>" type="text">
+				<input name="replace" value="<?= Filter::escapeHtml($controller->replace) ?>" type="text">
 			</div>
 			<script>
 				function checkAll(box) {
@@ -182,44 +178,44 @@ function checknames(frm) {
 				}
 			</script>
 			<div class="label">
-				<?php echo /* I18N: A button label. */ I18N::translate('search'); ?>
+				<?= /* I18N: A button label. */ I18N::translate('search') ?>
 			</div>
 			<div class="value">
 				<p>
 					<label>
-					<input <?php echo $controller->replaceAll; ?> onclick="checkAll(this);" value="checked" name="replaceAll" type="checkbox">
-						<?php echo I18N::translate('Entire record'); ?>
+					<input <?= $controller->replaceAll ?> onclick="checkAll(this);" value="checked" name="replaceAll" type="checkbox">
+						<?= I18N::translate('Entire record') ?>
 					</label>
 					<hr>
 				</p>
 				<p>
 					<label>
-						<input <?php echo $controller->replaceNames; ?> <?php echo $controller->replaceAll ? 'disabled' : ''; ?> value="checked" name="replaceNames" type="checkbox">
-						<?php echo I18N::translate('Names'); ?>
+						<input <?= $controller->replaceNames ?> <?= $controller->replaceAll ? 'disabled' : '' ?> value="checked" name="replaceNames" type="checkbox">
+						<?= I18N::translate('Names') ?>
 					</label>
 				</p>
 				<p>
 					<label>
-						<input <?php echo $controller->replacePlaces; ?> <?php echo $controller->replaceAll ? 'disabled' : ''; ?> value="checked" name="replacePlaces" type="checkbox">
-						<?php echo I18N::translate('Places'); ?>
+						<input <?= $controller->replacePlaces ?> <?= $controller->replaceAll ? 'disabled' : '' ?> value="checked" name="replacePlaces" type="checkbox">
+						<?= I18N::translate('Places') ?>
 					</label>
 				</p>
 				<p>
 					<label>
-					<input <?php echo $controller->replacePlacesWord; ?> <?php echo $controller->replaceAll ? 'disabled' : ''; ?> value="checked" name="replacePlacesWord" type="checkbox">
-						<?php echo I18N::translate('Whole words only'); ?>
+					<input <?= $controller->replacePlacesWord ?> <?= $controller->replaceAll ? 'disabled' : '' ?> value="checked" name="replacePlacesWord" type="checkbox">
+						<?= I18N::translate('Whole words only') ?>
 					</label>
 				</p>
 			</div>
 
 			<div class="label"></div>
 			<div class="value">
-				<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('replace'); ?>">
+				<input type="submit" value="<?= /* I18N: A button label. */ I18N::translate('replace') ?>">
 			</div>
 		</div>
 	</form>
 
-<?php endif; ?>
+<?php endif ?>
 <?php if ($controller->action === 'soundex'): ?>
 
 	<form name="searchform" onsubmit="return checknames(this);">
@@ -227,83 +223,83 @@ function checknames(frm) {
 		<input type="hidden" name="isPostBack" value="true">
 		<div id="search-page-table">
 			<div class="label">
-				<?php echo I18N::translate('Given name'); ?>
+				<?= I18N::translate('Given name') ?>
 			</div>
 			<div class="value">
-				<input type="text" data-autocomplete-type="GIVN" name="firstname" value="<?php echo Filter::escapeHtml($controller->firstname); ?>" autofocus>
+				<input type="text" data-autocomplete-type="GIVN" name="firstname" value="<?= Filter::escapeHtml($controller->firstname) ?>" autofocus>
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Surname'); ?>
+				<?= I18N::translate('Surname') ?>
 			</div>
 			<div class="value">
-				<input type="text" data-autocomplete-type="SURN" name="lastname" value="<?php echo Filter::escapeHtml($controller->lastname); ?>">
+				<input type="text" data-autocomplete-type="SURN" name="lastname" value="<?= Filter::escapeHtml($controller->lastname) ?>">
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Place'); ?>
+				<?= I18N::translate('Place') ?>
 			</div>
 			<div class="value">
-				<input type="text"  data-autocomplete-type="PLAC2" name="place" value="<?php echo Filter::escapeHtml($controller->place); ?>">
+				<input type="text"  data-autocomplete-type="PLAC2" name="place" value="<?= Filter::escapeHtml($controller->place) ?>">
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Year'); ?>
+				<?= I18N::translate('Year') ?>
 			</div>
-			<div class="value"><input type="text" name="year" value="<?php echo Filter::escapeHtml($controller->year); ?>">
+			<div class="value"><input type="text" name="year" value="<?= Filter::escapeHtml($controller->year) ?>">
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Phonetic algorithm'); ?>
+				<?= I18N::translate('Phonetic algorithm') ?>
 			</div>
 			<div class="value">
 				<p>
-					<input type="radio" name="soundex" value="Russell" <?php echo $controller->soundex === 'Russell' ? 'checked' : ''; ?>>
-					<?php echo I18N::translate('Russell'); ?>
+					<input type="radio" name="soundex" value="Russell" <?= $controller->soundex === 'Russell' ? 'checked' : '' ?>>
+					<?= I18N::translate('Russell') ?>
 				</p>
 				<p>
-					<input type="radio" name="soundex" value="DaitchM" <?php echo $controller->soundex === 'DaitchM' || $controller->soundex === '' ? 'checked' : ''; ?>>
-					<?php echo I18N::translate('Daitch-Mokotoff'); ?>
+					<input type="radio" name="soundex" value="DaitchM" <?= $controller->soundex === 'DaitchM' || $controller->soundex === '' ? 'checked' : '' ?>>
+					<?= I18N::translate('Daitch-Mokotoff') ?>
 				</p>
 			</div>
 			<div class="label">
-				<?php echo I18N::translate('Associates'); ?>
+				<?= I18N::translate('Associates') ?>
 			</div>
 			<div class="value">
-				<input type="checkbox" name="showasso" value="on" <?php echo $controller->showasso === 'on' ? 'checked' : ''; ?>>
-				<?php echo I18N::translate('Show related individuals/families'); ?>
+				<input type="checkbox" name="showasso" value="on" <?= $controller->showasso === 'on' ? 'checked' : '' ?>>
+				<?= I18N::translate('Show related individuals/families') ?>
 			</div>
-			<?php if (count(Tree::getAll()) > 1 && Site::getPreference('ALLOW_CHANGE_GEDCOM')): ?>
+			<?php if (count(Tree::getAll()) > 1 && Site::getPreference('ALLOW_CHANGE_GEDCOM') === '1'): ?>
 				<?php if (count(Tree::getAll()) > 3): ?>
 					<div class="label"></div>
 					<div class="value">
-						<input type="button" value="<?php echo /* I18N: select all (of the family trees) */ I18N::translate('select all'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', true);});return false;">
-						<input type="button" value="<?php echo /* I18N: select none (of the family trees) */ I18N::translate('select none'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', false);});return false;">
+						<input type="button" value="<?= /* I18N: select all (of the family trees) */ I18N::translate('select all') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', true);});return false;">
+						<input type="button" value="<?= /* I18N: select none (of the family trees) */ I18N::translate('select none') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', false);});return false;">
 						<?php if (count(Tree::getAll()) > 10): ?>
-							<input type="button" value="<?php echo I18N::translate('invert selection'); ?>" onclick="jQuery('#search_trees :checkbox').each(function(){jQuery(this).attr('checked', !jQuery(this).attr('checked'));});return false;">
-						<?php endif; ?>
+							<input type="button" value="<?= I18N::translate('invert selection') ?>" onclick="$('#search_trees :checkbox').each(function(){$(this).attr('checked', !$(this).attr('checked'));});return false;">
+						<?php endif ?>
 					</div>
-				<?php endif; ?>
+				<?php endif ?>
 				<div class="label">
-					<?php echo I18N::translate('Family trees'); ?>
+					<?= I18N::translate('Family trees') ?>
 				</div>
 				<div id="search_trees" class="value">
 					<?php foreach (Tree::getAll() as $tree): ?>
 						<p>
-							<input type="checkbox" <?php echo in_array($tree, $controller->search_trees) ? 'checked' : ''; ?> value="yes" id="tree_<?php echo $tree->getTreeId(); ?>" name="tree_<?php echo $tree->getTreeId(); ?>">
-							<label for="tree_'<?php echo $tree->getTreeId(); ?>">
-								<?php echo $tree->getTitleHtml(); ?>
+							<input type="checkbox" <?= in_array($tree, $controller->search_trees) ? 'checked' : '' ?> value="yes" id="tree_<?= $tree->getTreeId() ?>" name="tree_<?= $tree->getTreeId() ?>">
+							<label for="tree_'<?= $tree->getTreeId() ?>">
+								<?= $tree->getTitleHtml() ?>
 							</label>
 						</p>
-					<?php endforeach; ?>
+					<?php endforeach ?>
 				</div>
-			<?php endif; ?>
+			<?php endif ?>
 
 			<div class="label"></div>
 			<div class="value">
-				<input type="submit" value="<?php echo  /* I18N: A button label. */ I18N::translate('search'); ?>">
+				<input type="submit" value="<?=  /* I18N: A button label. */ I18N::translate('search') ?>">
 			</div>
 		</div>
 	</form>
 
-<?php endif; ?>
+<?php endif ?>
 
-<?php $controller->printResults(); ?>
+<?php $controller->printResults() ?>
 
 </div>

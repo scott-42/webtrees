@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,8 +19,7 @@ use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Module\ModuleConfigInterface;
 
-define('WT_SCRIPT_NAME', 'admin_module_charts.php');
-require 'includes/session.php';
+require 'app/bootstrap.php';
 
 $controller = new PageController;
 $controller
@@ -45,27 +44,25 @@ if ($action === 'update_mods' && Filter::checkCsrf()) {
 	return;
 }
 
-$controller
-	->pageHeader();
+$controller->pageHeader();
 
+echo Bootstrap4::breadcrumbs([
+	'admin.php'         => I18N::translate('Control panel'),
+	'admin_modules.php' => I18N::translate('Module administration'),
+], $controller->getPageTitle());
 ?>
-<ol class="breadcrumb small">
-	<li><a href="admin.php"><?php echo I18N::translate('Control panel'); ?></a></li>
-	<li><a href="admin_modules.php"><?php echo I18N::translate('Module administration'); ?></a></li>
-	<li class="active"><?php echo $controller->getPageTitle(); ?></li>
-</ol>
 
-<h1><?php echo $controller->getPageTitle(); ?></h1>
+<h1><?= $controller->getPageTitle() ?></h1>
 
 <form method="post">
 	<input type="hidden" name="action" value="update_mods">
-	<?php echo Filter::getCsrf(); ?>
+	<?= Filter::getCsrf() ?>
 	<table class="table table-bordered">
 		<thead>
 		<tr>
-			<th class="col-xs-2"><?php echo I18N::translate('Chart'); ?></th>
-			<th class="col-xs-5"><?php echo I18N::translate('Description'); ?></th>
-			<th class="col-xs-5"><?php echo I18N::translate('Access level'); ?></th>
+			<th class="col-xs-2"><?= I18N::translate('Chart') ?></th>
+			<th class="col-xs-5"><?= I18N::translate('Description') ?></th>
+			<th class="col-xs-5"><?= I18N::translate('Access level') ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -73,34 +70,34 @@ $controller
 			<tr>
 				<td class="col-xs-2">
 					<?php if ($module instanceof ModuleConfigInterface): ?>
-						<a href="<?php echo $module->getConfigLink(); ?>"><?php echo $module->getTitle(); ?> <i class="fa fa-cogs"></i></a>
+						<a href="<?= $module->getConfigLink() ?>"><?= $module->getTitle() ?> <i class="fa fa-cogs"></i></a>
 					<?php else: ?>
-						<?php echo $module->getTitle(); ?>
-					<?php endif; ?>
+						<?= $module->getTitle() ?>
+					<?php endif ?>
 				</td>
-				<td class="col-xs-5"><?php echo $module->getDescription(); ?></td>
+				<td class="col-xs-5"><?= $module->getDescription() ?></td>
 				<td class="col-xs-5">
 					<table class="table">
 						<tbody>
 							<?php foreach (Tree::getAll() as $tree): ?>
 								<tr>
 									<td>
-										<?php echo $tree->getTitleHtml(); ?>
+										<?= $tree->getTitleHtml() ?>
 									</td>
 									<td>
-										<?php echo FunctionsEdit::editFieldAccessLevel('access-' . $module->getName() . '-' . $tree->getTreeId(), $module->getAccessLevel($tree, 'chart')); ?>
+										<?= Bootstrap4::select(FunctionsEdit::optionsAccessLevels(), $module->getAccessLevel($tree, 'block'), ['name' => 'access-' . $module->getName() . '-' . $tree->getTreeId()]) ?>
 									</td>
 								</tr>
-							<?php endforeach; ?>
+							<?php endforeach ?>
 						</tbody>
 					</table>
 				</td>
 			</tr>
-		<?php endforeach; ?>
+		<?php endforeach ?>
 		</tbody>
 	</table>
 	<button class="btn btn-primary" type="submit">
 		<i class="fa fa-check"></i>
-		<?php echo I18N::translate('save'); ?>
+		<?= I18N::translate('save') ?>
 	</button>
 </form>

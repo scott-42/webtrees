@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -67,11 +67,11 @@ class NotesTabModule extends AbstractModule implements ModuleTabInterface {
 				<col class="width20">
 				<col class="width80">
 			</colgroup>
-			<tr class="noprint">
+			<tr>
 				<td colspan="2" class="descriptionbox rela">
 					<label>
 						<input id="show-level-2-notes" type="checkbox">
-						<?php echo I18N::translate('Show all notes'); ?>
+						<?= I18N::translate('Show all notes') ?>
 					</label>
 				</td>
 			</tr>
@@ -93,23 +93,23 @@ class NotesTabModule extends AbstractModule implements ModuleTabInterface {
 		// New note link
 		if ($controller->record->canEdit()) {
 			?>
-			<tr class="noprint">
+			<tr>
 				<td class="facts_label">
-					<?php echo GedcomTag::getLabel('NOTE'); ?>
+					<?= GedcomTag::getLabel('NOTE') ?>
 				</td>
 				<td class="facts_value">
-					<a href="#" onclick="add_new_record('<?php echo $controller->record->getXref(); ?>','NOTE'); return false;">
-						<?php echo I18N::translate('Add a note'); ?>
+					<a href="#" onclick="add_new_record('<?= $controller->record->getXref() ?>','NOTE'); return false;">
+						<?= I18N::translate('Add a note') ?>
 					</a>
 				</td>
 			</tr>
-			<tr class="noprint">
+			<tr>
 				<td class="facts_label">
-					<?php echo GedcomTag::getLabel('SHARED_NOTE'); ?>
+					<?= GedcomTag::getLabel('SHARED_NOTE') ?>
 				</td>
 				<td class="facts_value">
-					<a href="#" onclick="add_new_record('<?php echo $controller->record->getXref(); ?>','SHARED_NOTE'); return false;">
-						<?php echo I18N::translate('Add a shared note'); ?>
+					<a href="#" onclick="add_new_record('<?= $controller->record->getXref() ?>','SHARED_NOTE'); return false;">
+						<?= I18N::translate('Add a shared note') ?>
 					</a>
 				</td>
 			</tr>
@@ -118,7 +118,7 @@ class NotesTabModule extends AbstractModule implements ModuleTabInterface {
 		?>
 		</table>
 		<script>
-			persistent_toggle("show-level-2-notes", ".row_note2");
+			//persistent_toggle("show-level-2-notes", ".row_note2");
 		</script>
 		<?php
 

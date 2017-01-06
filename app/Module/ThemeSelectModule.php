@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -48,7 +48,7 @@ class ThemeSelectModule extends AbstractModule implements ModuleBlockInterface {
 		$menu  = Theme::theme()->menuThemes();
 
 		if ($menu) {
-			$content = '<div class="center theme_form">' . $menu . '</div><br>';
+			$content = '<ul class="nav text-justify">' . $menu->bootstrap4() . '</ul>';
 
 			if ($template) {
 				return Theme::theme()->formatBlock($id, $title, $class, $content);

@@ -1,0 +1,177 @@
+/**
+ * webtrees: online genealogy
+ * Copyright (C) 2016 webtrees development team
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Pages have the following high-level structure:
+ *
+ * wt-global
+ * +---wt-header-container
+ * |   +---wt-header-content
+ * |       +---wt-accessibility-links
+ * |       +---wt-site-logo
+ * |       +---wt-site-title
+ * |       +---wt-header-search
+ * |       |   +---wt-header-search-form
+ * |       +---wt-secondary-navigation
+ * |       |   +---wt-secondary-menu
+ * |       +---wt-primary-navigation
+ * |           +---wt-primary-menu
+ * +---wt-main-container
+ * |   +---wt-main-content
+ * |       +---wt-messages
+ * |       +---wt-page-title
+ * |       +---wt-page-options
+ * |       +---wt-page-content
+ * +---wt-footer-container
+ *     +---wt-footer-content
+ *         +---wt-contact-links
+ *         +---wt-powered-by-webtrees
+ *         +---wt-page-views
+ *         +---wt-cookie-warning
+ */
+
+.wt-global {
+	/* Prevent redraws when dynamic content requires a scrollbar. */
+	overflow-y: scroll;
+	/* Keep the page as tall as the window, so the footer can remain at the bottom. */
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+.wt-header-container {
+}
+
+.wt-header-content {
+}
+
+.wt-accessibility-links {
+	/* When we focus on the links, they should appear without changing the layout. */
+	position: fixed;
+}
+
+.wt-site-logo {
+}
+
+.wt-site-title {
+}
+
+.wt-header-search {
+}
+
+.wt-header-search-form {
+}
+
+.wt-secondary-navigation {
+}
+
+.wt-secondary-menu {
+}
+
+.wt-primary-navigation {
+}
+
+.wt-primary-menu {
+}
+
+.wt-main-container {
+	/* Grow to fill content, to allow footer to stay at bottom of page. */
+	flex: 1;
+	/* Space between the header/footer and the main content. */
+	padding: 1rem 0;
+}
+
+.wt-main {
+}
+
+.wt-messages {
+}
+
+.wt-page-title {
+}
+
+.wt-page-options {
+}
+
+.wt-page-content {
+}
+
+.wt-footer-container {
+}
+
+.wt-footer-content {
+	text-align: center;
+}
+
+.wt-contact-links {
+}
+
+.wt-powered-by-webtrees {
+}
+
+.wt-page-views {
+}
+
+.wt-cookie-warning {
+}
+
+/*
+ * Provide a placeholder for content that is loaded dynamically.
+ */
+.wt-ajax-load:empty {
+}
+
+/*
+ * Ancestry chart
+ */
+.wt-ancestry-chart-list {
+}
+
+.wt-ancestry-chart-list-item {
+	list-style: none outside none;
+}
+
+/*
+ * Descendancy chart
+ */
+.wt-descendancy-chart-list {
+}
+
+.wt-descendancy-chart-list-item {
+	list-style: none outside none;
+}
+
+/* Some menus (e.g. languages) can be longer than a page */
+.dropdown-menu {
+	max-height: 25rem;
+	overflow-x: hidden;
+}
+
+/* Temporary hack/workaround for https://github.com/twbs/bootstrap/issues/21666 */
+fieldset.row {
+	display: block;
+}
+fieldset.row > legend, fieldset.row > div {
+	display: inline-block;
+	float: left;
+}
+
+/* Forms */
+.col-form-label,
+.col-form-legend {
+	text-align: end;
+	font-weight: bold;
+}
+

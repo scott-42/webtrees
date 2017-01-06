@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,22 +17,19 @@ namespace Fisharebest\Webtrees;
 
 use Fisharebest\Webtrees\Controller\TimelineController;
 use Fisharebest\Webtrees\Functions\Functions;
-use Fisharebest\Webtrees\Functions\FunctionsPrint;
+use Fisharebest\Webtrees\Functions\FunctionsEdit;
 
 global $WT_TREE;
 
 $basexoffset = 0;
 $baseyoffset = 0;
 
-define('WT_SCRIPT_NAME', 'timeline.php');
-require './includes/session.php';
+require 'app/bootstrap.php';
 
 $controller = new TimelineController;
 $controller
 	->restrictAccess(Module::isActiveChart($WT_TREE, 'timeline_chart'))
-	->pageHeader()
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();');
+	->pageHeader();
 
 ?>
 <script>
@@ -125,16 +122,16 @@ document.onmousemove = function (e) {
 		}
 		var yearform = document.getElementById('yearform' + personnum);
 		var ageform = document.getElementById('ageform' + personnum);
-		yearform.innerHTML = year + "      " + month + " <?php echo mb_substr(I18N::translate('Month:'), 0, 1); ?>   " + day + " <?php echo mb_substr(I18N::translate('Day:'), 0, 1); ?>";
+		yearform.innerHTML = year + "      " + month + " <?= mb_substr(I18N::translate('Month:'), 0, 1) ?>   " + day + " <?= mb_substr(I18N::translate('Day:'), 0, 1) ?>";
 		if (ba * yage > 1 || ba * yage < -1 || ba * yage === 0) {
-			ageform.innerHTML = (ba * yage) + " <?php echo mb_substr(I18N::translate('years'), 0, 1); ?>   " + (ba * mage) + " <?php echo mb_substr(I18N::translate('Month:'), 0, 1); ?>   " + (ba * dage) + " <?php echo mb_substr(I18N::translate('Day:'), 0, 1); ?>";
+			ageform.innerHTML = (ba * yage) + " <?= mb_substr(I18N::translate('years'), 0, 1) ?>   " + (ba * mage) + " <?= mb_substr(I18N::translate('Month:'), 0, 1) ?>   " + (ba * dage) + " <?= mb_substr(I18N::translate('Day:'), 0, 1) ?>";
 		} else {
-			ageform.innerHTML = (ba * yage) + " <?php echo mb_substr(I18N::translate('Year:'), 0, 1); ?>   " + (ba * mage) + " <?php echo mb_substr(I18N::translate('Month:'), 0, 1); ?>   " + (ba * dage) + " <?php echo mb_substr(I18N::translate('Day:'), 0, 1); ?>";
+			ageform.innerHTML = (ba * yage) + " <?= mb_substr(I18N::translate('Year:'), 0, 1) ?>   " + (ba * mage) + " <?= mb_substr(I18N::translate('Month:'), 0, 1) ?>   " + (ba * dage) + " <?= mb_substr(I18N::translate('Day:'), 0, 1) ?>";
 		}
 		var line = document.getElementById('ageline' + personnum);
 		var temp = newx - oldx;
 
-		var textDirection = jQuery('html').attr('dir');
+		var textDirection = $('html').attr('dir');
 		if (textDirection === 'rtl') {
 			temp = temp * -1;
 		}
@@ -181,24 +178,24 @@ document.onmousemove = function (e) {
 		// calculate the change in Y position
 		var dy = newy - ob.offsetTop;
 		// check if we are above the starting point and switch the background image
-		var textDirection = jQuery('html').attr('dir');
+		var textDirection = $('html').attr('dir');
 
 		if (newy < boxmean) {
 			if (textDirection === 'rtl') {
-				dbox.style.backgroundImage = "url('<?php echo Theme::theme()->parameter('image-dline2'); ?>')";
+				dbox.style.backgroundImage = "url('<?= Theme::theme()->parameter('image-dline2') ?>')";
 				dbox.style.backgroundPosition = "0% 0%";
 			} else {
-				dbox.style.backgroundImage = "url('<?php echo Theme::theme()->parameter('image-dline'); ?>')";
+				dbox.style.backgroundImage = "url('<?= Theme::theme()->parameter('image-dline') ?>')";
 				dbox.style.backgroundPosition = "0% 100%";
 			}
 			dy = -dy;
 			dbox.style.top = (newy + bheight / 3) + "px";
 		} else {
 			if (textDirection === 'rtl') {
-				dbox.style.backgroundImage = "url('<?php echo Theme::theme()->parameter('image-dline'); ?>')";
+				dbox.style.backgroundImage = "url('<?= Theme::theme()->parameter('image-dline') ?>')";
 				dbox.style.backgroundPosition = "0% 100%";
 			} else {
-				dbox.style.backgroundImage = "url('<?php echo Theme::theme()->parameter('image-dline2'); ?>')";
+				dbox.style.backgroundImage = "url('<?= Theme::theme()->parameter('image-dline2') ?>')";
 				dbox.style.backgroundPosition = "0% 0%";
 			}
 
@@ -243,9 +240,25 @@ document.onmouseup = function () {
 }
 
 </script>
-<h2><?php echo I18N::translate('Timeline'); ?></h2>
-<form name="people" action="?">
-	<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
+<h2><?= I18N::translate('Timeline') ?></h2>
+<form>
+	<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="newpid">
+			<?= I18N::translate('Individual') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= FunctionsEdit::formControlIndividual(null, ['id' => 'newpid', 'name' => 'newpid']) ?>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<div class="col-sm-9 offset-sm-3">
+			<input class="btn btn-primary" type="submit" value="<?= /* I18N: A button label. */ I18N::translate('add') ?>">
+		</div>
+	</div>
+
 	<table>
 		<tr>
 			<?php
@@ -264,59 +277,44 @@ document.onmouseup = function () {
 				}
 				$i++;
 				?>
-				<td class="person<?php echo $col; ?>" style="padding: 5px;">
+				<td class="person<?= $col ?>" style="padding: 5px;">
 					<?php
 					if ($indi && $indi->canShow()) {
 						echo $indi->getSexImage('large');
 						?>
-						<a href="<?php echo $indi->getHtmlUrl(); ?>"> <?php echo $indi->getFullName(); ?><br>
-							<?php echo $indi->getAddName(); ?><br>
+						<a href="<?= $indi->getHtmlUrl() ?>"> <?= $indi->getFullName() ?><br>
+							<?= $indi->getAddName() ?><br>
 						</a>
-						<input type="hidden" name="pids[<?php echo $p; ?>]" value="<?php echo Filter::escapeHtml($pid); ?>">
-						<a href="timeline.php?<?php echo $controller->pidlinks; ?>&amp;scale=<?php echo $controller->scale; ?>&amp;remove=<?php echo $pid; ?>&amp;ged=<?php echo $WT_TREE->getNameUrl(); ?>" >
-						<span class="details1"><?php echo I18N::translate('Remove individual'); ?></span></a>
+						<input type="hidden" name="pids[<?= $p ?>]" value="<?= Filter::escapeHtml($pid) ?>">
+						<a href="timeline.php?<?= $controller->pidlinks ?>&amp;scale=<?= $controller->scale ?>&amp;remove=<?= $pid ?>&amp;ged=<?= $WT_TREE->getNameUrl() ?>" >
+							<span class="details1"><?= I18N::translate('Remove individual') ?></span></a>
 						<?php if (!empty($controller->birthyears[$pid])) { ?>
 							<span class="details1"><br>
-								<?php echo /* I18N: an age indicator, which can be dragged around the screen */ I18N::translate('Show an age cursor'); ?>
-								<input type="checkbox" name="agebar<?php echo $p; ?>" value="ON" onclick="jQuery('#agebox<?php echo $p; ?>').toggle();">
+								<?= /* I18N: an age indicator, which can be dragged around the screen */ I18N::translate('Show an age cursor') ?>
+								<input type="checkbox" name="agebar<?= $p ?>" value="ON" onclick="$('#agebox<?= $p ?>').toggle();">
 							</span>
 						<?php } ?>
 						<br>
-					<?php
+						<?php
 					} else {
 						echo '<div class="error">', I18N::translate('This information is private and cannot be shown.'), '</div>';
 						?>
-						<input type="hidden" name="pids[<?php echo $p; ?>]" value="<?php echo Filter::escapeHtml($pid); ?>">
+						<input type="hidden" name="pids[<?= $p ?>]" value="<?= Filter::escapeHtml($pid) ?>">
 						<br>
-				<a href="timeline.php?<?php echo $controller->pidlinks; ?>&amp;scale=<?php echo $controller->scale; ?>&amp;remove=<?php echo $pid; ?>&amp;ged=<?php echo $WT_TREE->getNameUrl(); ?>" >
-							<span class="details1"><?php echo I18N::translate('Remove individual'); ?></span></a>
+						<a href="timeline.php?<?= $controller->pidlinks ?>&amp;scale=<?= $controller->scale ?>&amp;remove=<?= $pid ?>&amp;ged=<?= $WT_TREE->getNameUrl() ?>" >
+							<span class="details1"><?= I18N::translate('Remove individual') ?></span></a>
 						<br>
 					<?php } ?>
 				</td>
 			<?php } ?>
-			<td class="list_value" style="padding: 5px;">
-				<label for="newpid">
-					<?php echo I18N::translate('Add another individual to the chart'), '<br>'; ?>
-				</label>
-				<input class="pedigree_form" data-autocomplete-type="INDI" type="text" size="5" id="newpid" name="pids[]">
-				<?php echo FunctionsPrint::printFindIndividualLink('newpid'); ?>
-				<br>
-				<br>
-
-				<div style="text-align: center;"><input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('add'); ?>"></div>
-			</td>
-			<?php
-			if (count($controller->people) > 0) {
-				$scalemod = round($controller->scale * .2) + 1;
-				?>
-				<td class="list_value" style="padding: 5px;">
-					<a href="<?php echo WT_SCRIPT_NAME . '?' . $controller->pidlinks . 'scale=' . ($controller->scale + $scalemod); ?>&amp;ged=<?php echo $WT_TREE->getNameUrl(); ?>" class="icon-zoomin" title="<?php echo I18N::translate('Zoom in'); ?>"></a><br>
-					<a href="<?php echo WT_SCRIPT_NAME . '?' . $controller->pidlinks . 'scale=' . ($controller->scale - $scalemod); ?>&amp;ged=<?php echo $WT_TREE->getNameUrl(); ?>" class="icon-zoomout" title="<?php echo I18N::translate('Zoom out'); ?>"></a><br>
-					<input type="button" value="<?php echo I18N::translate('reset'); ?>" onclick="window.location = 'timeline.php?ged=<?php echo $WT_TREE->getNameUrl(); ?>';">
-				</td>
-			<?php } ?>
 		</tr>
 	</table>
+	<?php $scalemod = round($controller->scale * .2) + 1; ?>
+
+	<a href="?<?= $controller->pidlinks ?>scale=<?= $controller->scale + $scalemod ?>&amp;ged=<?= $WT_TREE->getNameUrl() ?>" class="icon-zoomin" title="<?= I18N::translate('Zoom in') ?>"></a><br>
+	<a href="?<?= $controller->pidlinks ?>scale=<?= $controller->scale - $scalemod ?>&amp;ged=<?= $WT_TREE->getNameUrl() ?>" class="icon-zoomout" title="<?= I18N::translate('Zoom out') ?>"></a><br>
+	<input type="button" value="<?= I18N::translate('reset') ?>" onclick="window.location = 'timeline.php?ged=<?= $WT_TREE->getNameUrl() ?>';">
+
 </form>
 <br>
 <?php
@@ -324,12 +322,12 @@ if (count($controller->people) > 0) {
 	?>
 	<div id="timeline_chart">
 		<!-- print the timeline line image -->
-		<div id="line" style="position:absolute; <?php echo I18N::direction() === 'ltr' ? 'left: ' . ($basexoffset + 22) : 'right: ' . ($basexoffset + 22); ?>px; top: <?php echo $baseyoffset; ?>px;">
-		<img src="<?php echo Theme::theme()->parameter('image-vline'); ?>" width="3" height="<?php echo $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale; ?>">
+		<div id="line" style="position:absolute; <?= I18N::direction() === 'ltr' ? 'left: ' . ($basexoffset + 22) : 'right: ' . ($basexoffset + 22) ?>px; top: <?= $baseyoffset ?>px;">
+		<img src="<?= Theme::theme()->parameter('image-vline') ?>" width="3" height="<?= $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale ?>">
 		</div>
 		<!-- print divs for the grid -->
-		<div id="scale<?php echo $controller->baseyear; ?>" style="position:absolute; <?php echo I18N::direction() === 'ltr' ? 'left:' . $basexoffset : 'right:' . $basexoffset; ?>px; top: <?php echo $baseyoffset - 5; ?>px; font-size: 7pt; text-align: <?php echo I18N::direction() === 'ltr' ? 'left' : 'right'; ?>;">
-			<?php echo $controller->baseyear . '—'; ?>
+		<div id="scale<?= $controller->baseyear ?>" style="position:absolute; <?= I18N::direction() === 'ltr' ? 'left:' . $basexoffset : 'right:' . $basexoffset ?>px; top: <?= $baseyoffset - 5 ?>px; font-size: 7pt; text-align: <?= I18N::direction() === 'ltr' ? 'left' : 'right' ?>;">
+			<?= $controller->baseyear . '—' ?>
 		</div>
 		<?php
 		// at a scale of 25 or higher, show every year
@@ -360,11 +358,11 @@ if (count($controller->people) > 0) {
 			$ageyoffset = $baseyoffset + ($controller->bheight * $p);
 			$col        = $p % 6;
 			?>
-			<div id="agebox<?php echo $p; ?>" style="cursor:move; position:absolute; <?php echo I18N::direction() === 'ltr' ? 'left: ' . ($basexoffset + 20) : 'right: ' . ($basexoffset + 20); ?>px; top:<?php echo $ageyoffset; ?>px; height:<?php echo $controller->bheight; ?>px; display:none;" onmousedown="ageCursorMouseDown(this, <?php echo $p; ?>);">
+			<div id="agebox<?= $p ?>" style="cursor:move; position:absolute; <?= I18N::direction() === 'ltr' ? 'left: ' . ($basexoffset + 20) : 'right: ' . ($basexoffset + 20) ?>px; top:<?= $ageyoffset ?>px; height:<?= $controller->bheight ?>px; display:none;" onmousedown="ageCursorMouseDown(this, <?= $p ?>);">
 				<table cellspacing="0" cellpadding="0">
 					<tr>
 						<td>
-							<img src="<?php echo Theme::theme()->parameter('image-hline'); ?>" name="ageline<?php echo $p; ?>" id="ageline<?php echo $p; ?>" width="25" height="3">
+							<img src="<?= Theme::theme()->parameter('image-hline') ?>" name="ageline<?= $p ?>" id="ageline<?= $p ?>" width="25" height="3">
 						</td>
 						<td>
 							<?php
@@ -372,15 +370,15 @@ if (count($controller->people) > 0) {
 							if (!empty($controller->birthyears[$pid])) {
 								$tage = $tyear - $controller->birthyears[$pid];
 								?>
-								<table class="person<?php echo $col; ?>" style="cursor: hand;">
+								<table class="person<?= $col ?>" style="cursor: hand;">
 									<tr>
-										<td><?php echo I18N::translate('Year:'); ?>
-											<span id="yearform<?php echo $p; ?>" class="field">
-									<?php echo $tyear; ?>
+										<td><?= I18N::translate('Year:') ?>
+											<span id="yearform<?= $p ?>" class="field">
+									<?= $tyear ?>
 									</span>
 										</td>
-										<td>(<?php echo I18N::translate('Age'); ?>
-											<span id="ageform<?php echo $p; ?>" class="field"><?php echo $tage; ?></span>)
+										<td>(<?= I18N::translate('Age') ?>
+											<span id="ageform<?= $p ?>" class="field"><?= $tage ?></span>)
 										</td>
 									</tr>
 								</table>
@@ -393,9 +391,9 @@ if (count($controller->people) > 0) {
 			<br><br><br><br>
 		<?php } ?>
 		<script>
-			var bottomy = <?php echo $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale; ?>-5;
-			var topy = <?php echo $baseyoffset; ?>;
-			var baseyear = <?php echo $controller->baseyear - (25 / $controller->scale); ?>;
+			var bottomy = <?= $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale ?>-5;
+			var topy = <?= $baseyoffset ?>;
+			var baseyear = <?= $controller->baseyear - (25 / $controller->scale) ?>;
 			var birthyears = [];
 			var birthmonths = [];
 			var birthdays = [];
@@ -414,14 +412,14 @@ if (count($controller->people) > 0) {
 			}
 			?>
 
-			var bheight = <?php echo $controller->bheight; ?>;
-			var scale = <?php echo $controller->scale; ?>;
+			var bheight = <?= $controller->bheight ?>;
+			var scale = <?= $controller->scale ?>;
 		</script>
 	</div>
 <?php } ?>
 <script>
 	timeline_chart_div = document.getElementById("timeline_chart");
 	if (timeline_chart_div) {
-		timeline_chart_div.style.height = '<?php echo $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale * 1.1; ?>px';
+		timeline_chart_div.style.height = '<?= $baseyoffset + ($controller->topyear - $controller->baseyear) * $controller->scale * 1.1 ?>px';
 	}
 </script>

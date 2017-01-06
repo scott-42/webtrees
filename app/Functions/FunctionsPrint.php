@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +16,6 @@
 namespace Fisharebest\Webtrees\Functions;
 
 use Fisharebest\Webtrees\Config;
-use Fisharebest\Webtrees\Controller\SearchController;
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\Family;
@@ -33,7 +32,6 @@ use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Place;
 use Fisharebest\Webtrees\Session;
 use Fisharebest\Webtrees\Theme;
-use Fisharebest\Webtrees\Tree;
 use Rhumsaa\Uuid\Uuid;
 
 /**
@@ -46,25 +44,12 @@ class FunctionsPrint {
 	 * find and print a given individuals information for a pedigree chart
 	 *
 	 * @param Individual $person The person to print
-	 * @param int $show_full The style to print the box in, 0 for smaller boxes, 1 for larger boxes
 	 */
-	public static function printPedigreePerson(Individual $person = null, $show_full = 1) {
-
-		switch ($show_full) {
-		case 0:
-			if ($person) {
-				echo Theme::theme()->individualBoxSmall($person);
-			} else {
-				echo Theme::theme()->individualBoxSmallEmpty();
-			}
-			break;
-		case 1:
-			if ($person) {
-				echo Theme::theme()->individualBox($person);
-			} else {
-				echo Theme::theme()->individualBoxEmpty();
-			}
-			break;
+	public static function printPedigreePerson(Individual $person = null) {
+		if ($person) {
+			echo Theme::theme()->individualBox($person);
+		} else {
+			echo Theme::theme()->individualBoxEmpty();
 		}
 	}
 
@@ -190,12 +175,31 @@ class FunctionsPrint {
 	 * Print a link for a popup help window.
 	 *
 	 * @param string $help_topic
-	 * @param string $module
 	 *
 	 * @return string
 	 */
-	public static function helpLink($help_topic, $module = '') {
-		return '<span class="icon-help" onclick="helpDialog(\'' . $help_topic . '\',\'' . $module . '\'); return false;">&nbsp;</span>';
+	public static function helpLink($help_topic) {
+		$title = '';
+		$text = '';
+		require 'help_text.php';
+
+		return '<i class="fa fa-info-circle" data-toggle="modal" data-target="#wt-help-modal" aria-label="' . I18N::translate('Help') . '"></i>
+			<div class="modal fade" id="wt-help-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			  <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <h3 class="modal-title" id="wt-modal-title">' . $title . '</h3>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="'. I18N::translate('close') .'">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      </div>
+			      <div class="modal-body">' . $text . '</div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-secondary" data-dismiss="modal">' . I18N::translate('close') . '</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>';
 	}
 
 	/**
@@ -209,35 +213,6 @@ class FunctionsPrint {
 	 */
 	public static function wikiHelpLink($topic) {
 		return '<a class="help icon-wiki" href="' . WT_WEBTREES_WIKI . $topic . '" title="' . I18N::translate('webtrees wiki') . '"></a>';
-	}
-
-	/**
-	 * When a user has searched for text, highlight any matches in
-	 * the displayed string.
-	 *
-	 * @param string $string
-	 *
-	 * @return string
-	 */
-	public static function highlightSearchHits($string) {
-		global $controller;
-
-		if ($controller instanceof SearchController && $controller->query) {
-			// TODO: when a search contains multiple words, we search independently.
-			// e.g. searching for "FOO BAR" will find records containing both FOO and BAR.
-			// However, we only highlight the original search string, not the search terms.
-			// The controller needs to provide its "query_terms" array.
-			$regex = [];
-			foreach ([$controller->query] as $search_term) {
-				$regex[] = preg_quote($search_term, '/');
-			}
-			// Match these strings, provided they do not occur inside HTML tags
-			$regex = '(' . implode('|', $regex) . ')(?![^<]*>)';
-
-			return preg_replace('/' . $regex . '/i', '<span class="search_hit">$1</span>', $string);
-		} else {
-			return $string;
-		}
 	}
 
 	/**
@@ -547,7 +522,7 @@ class FunctionsPrint {
 				if ($fact['type'] == $type || $fact['type'] == 'all') {
 					if ($newRow) {
 						$newRow = false;
-						echo '<tr class="noprint"><td class="descriptionbox">';
+						echo '<tr><td class="descriptionbox">';
 						echo I18N::translate('Add from clipboard'), '</td>';
 						echo '<td class="optionbox wrap"><form name="newFromClipboard" onsubmit="return false;">';
 						echo '<select id="newClipboardFact">';
@@ -610,12 +585,15 @@ class FunctionsPrint {
 		uasort($translated_addfacts, function ($x, $y) {
 			return I18N::strcasecmp(I18N::translate($x), I18N::translate($y));
 		});
-		echo '<tr class="noprint"><td class="descriptionbox">';
+		echo '<tr><td class="descriptionbox">';
 		echo I18N::translate('Fact or event');
 		echo '</td>';
 		echo '<td class="optionbox wrap">';
-		echo '<form name="newfactform" onsubmit="return false;">';
-		echo '<select id="newfact" name="newfact">';
+		echo '<form action="edit_interface.php">';
+		echo '<input type="hidden" name="action" value="add">';
+		echo '<input type="hidden" name="xref" value="' . $id . '">';
+		echo '<input type="hidden" name="ged" value="' . $WT_TREE->getNameHtml() . '">';
+		echo '<select name="fact">';
 		echo '<option value="" disabled selected>' . I18N::translate('&lt;select&gt;') . '</option>';
 		foreach ($translated_addfacts as $fact => $fact_name) {
 			echo '<option value="', $fact, '">', $fact_name, '</option>';
@@ -625,12 +603,13 @@ class FunctionsPrint {
 			echo '<option value="EVEN">', I18N::translate('Custom event'), '</option>';
 		}
 		echo '</select>';
-		echo '<input type="button" value="', /* I18N: A button label. */ I18N::translate('add'), '" onclick="add_record(\'' . $id . '\', \'newfact\');">';
+		echo '<input type="submit" value="', /* I18N: A button label. */ I18N::translate('add'), '">';
+		echo '</form>';
 		echo '<span class="quickfacts">';
 		foreach ($quickfacts as $fact) {
-			echo '<a href="#" onclick="add_new_record(\'' . $id . '\', \'' . $fact . '\');return false;">', GedcomTag::getLabel($fact), '</a>';
+			echo '<a href="edit_interface.php?action=add&amp;fact=' . $fact . '&amp;xref=' . $id . '&amp;ged=' . $WT_TREE->getNameHtml() . '">', GedcomTag::getLabel($fact), '</a>';
 		}
-		echo '</span></form>';
+		echo '</span>';
 		echo '</td></tr>';
 	}
 
@@ -669,47 +648,6 @@ class FunctionsPrint {
 	}
 
 	/**
-	 * HTML link to find an individual.
-	 *
-	 * @param string $element_id
-	 * @param string $indiname
-	 * @param Tree $tree
-	 *
-	 * @return string
-	 */
-	public static function printFindIndividualLink($element_id, $indiname = '', $tree = null) {
-		global $WT_TREE;
-
-		if ($tree === null) {
-			$tree = $WT_TREE;
-		}
-
-		return '<a href="#" onclick="findIndi(document.getElementById(\'' . $element_id . '\'), document.getElementById(\'' . $indiname . '\'), \'' . $tree->getNameHtml() . '\'); return false;" class="icon-button_indi" title="' . I18N::translate('Find an individual') . '"></a>';
-	}
-
-	/**
-	 * HTML link to find a place.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printFindPlaceLink($element_id) {
-		return '<a href="#" onclick="findPlace(document.getElementById(\'' . $element_id . '\'), WT_GEDCOM); return false;" class="icon-button_place" title="' . I18N::translate('Find a place') . '"></a>';
-	}
-
-	/**
-	 * HTML link to find a family.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printFindFamilyLink($element_id) {
-		return '<a href="#" onclick="findFamily(document.getElementById(\'' . $element_id . '\'), WT_GEDCOM); return false;" class="icon-button_family" title="' . I18N::translate('Find a family') . '"></a>';
-	}
-
-	/**
 	 * HTML link to open the special character window.
 	 *
 	 * @param string $element_id
@@ -734,53 +672,6 @@ class FunctionsPrint {
 			echo ' return false;">', $choice, '</span> ';
 		}
 		echo '</small>';
-	}
-
-	/**
-	 * HTML link to find a source.
-	 *
-	 * @param string $element_id
-	 * @param string $sourcename
-	 *
-	 * @return string
-	 */
-	public static function printFindSourceLink($element_id, $sourcename = '') {
-		return '<a href="#" onclick="findSource(document.getElementById(\'' . $element_id . '\'), document.getElementById(\'' . $sourcename . '\'), WT_GEDCOM); return false;" class="icon-button_source" title="' . I18N::translate('Find a source') . '"></a>';
-	}
-
-	/**
-	 * HTML link to find a note.
-	 *
-	 * @param string $element_id
-	 * @param string $notename
-	 *
-	 * @return string
-	 */
-	public static function printFindNoteLink($element_id, $notename = '') {
-		return '<a href="#" onclick="findnote(document.getElementById(\'' . $element_id . '\'), document.getElementById(\'' . $notename . '\'), \'WT_GEDCOM\'); return false;" class="icon-button_find" title="' . I18N::translate('Find a shared note') . '"></a>';
-	}
-
-	/**
-	 * HTML link to find a repository.
-	 *
-	 * @param string $element_id
-	 *
-	 * @return string
-	 */
-	public static function printFindRepositoryLink($element_id) {
-		return '<a href="#" onclick="findRepository(document.getElementById(\'' . $element_id . '\'), WT_GEDCOM); return false;" class="icon-button_repository" title="' . I18N::translate('Find a repository') . '"></a>';
-	}
-
-	/**
-	 * HTML link to find a media object.
-	 *
-	 * @param string $element_id
-	 * @param string $choose
-	 *
-	 * @return string
-	 */
-	public static function printFindMediaLink($element_id, $choose = '') {
-		return '<a href="#" onclick="findMedia(document.getElementById(\'' . $element_id . '\'), \'' . $choose . '\', WT_GEDCOM); return false;" class="icon-button_media" title="' . I18N::translate('Find a media object') . '"></a>';
 	}
 
 	/**

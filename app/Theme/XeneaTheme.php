@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,24 +27,7 @@ class XeneaTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string A relative path, such as "themes/foo/"
 	 */
 	public function assetUrl() {
-		return 'themes/xenea/css-1.7.8/';
-	}
-
-	/**
-	 * Add markup to a flash message.
-	 *
-	 * @param \stdClass $message
-	 *
-	 * @return string
-	 */
-	protected function flashMessageContainer(\stdClass $message) {
-		// This theme uses jQueryUI markup.
-		switch ($message->status) {
-		case 'danger':
-			return '<p class="ui-state-error">' . $message->text . '</p>';
-		default:
-			return '<p class="ui-state-highlight">' . $message->text . '</p>';
-		}
+		return 'themes/xenea/css-1.8.0/';
 	}
 
 	/**
@@ -56,23 +39,6 @@ class XeneaTheme extends AbstractTheme implements ThemeInterface {
 		return
 			'<input type="search" name="query" size="12" placeholder="' . I18N::translate('Search') . '">' .
 			'<input type="submit" name="search" value="&gt;">';
-	}
-
-	/**
-	 * Create the contents of the <header> tag.
-	 *
-	 * @return string
-	 */
-	protected function headerContent() {
-		return
-			//$this->accessibilityLinks() .
-			'<div class="header-upper">' .
-			$this->formatTreeTitle() .
-			$this->formQuickSearch() .
-		'</div>' .
-		'<div class="header-lower">' .
-			$this->formatSecondaryMenu() .
-		'</div>';
 	}
 
 	/**
@@ -92,7 +58,7 @@ class XeneaTheme extends AbstractTheme implements ThemeInterface {
 			' transition: "none",' .
 			' slideshowStart: "' . I18N::translate('Play') . '",' .
 			' slideshowStop: "' . I18N::translate('Stop') . '",' .
-			' title: function() { return jQuery(this).data("title"); }' .
+			' title: function() { return $(this).data("title"); }' .
 			'});' .
 			'</script>';
 	}
@@ -125,10 +91,9 @@ class XeneaTheme extends AbstractTheme implements ThemeInterface {
 	 * @return string[]
 	 */
 	protected function stylesheets() {
-		return [
-			'themes/xenea/jquery-ui-1.11.2/jquery-ui.css',
-			$this->assetUrl() . 'style.css',
-		];
+		return parent::stylesheets() + [
+				$this->assetUrl() . 'style.css',
+			];
 	}
 
 	/**

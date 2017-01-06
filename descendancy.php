@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,81 +15,60 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
 use Fisharebest\Webtrees\Controller\DescendancyController;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\Functions\FunctionsPrintLists;
 
-define('WT_SCRIPT_NAME', 'descendancy.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $controller = new DescendancyController;
 $controller
 	->restrictAccess(Module::isActiveChart($WT_TREE, 'descendancy_chart'))
-	->pageHeader()
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();');
+	->pageHeader();
 
 ?>
-<div id="descendancy-page"><h2><?php echo $controller->getPageTitle(); ?></h2>
-	<form method="get" name="people" action="?">
-		<input type="hidden" name="ged" value="<?php echo $WT_TREE->getNameHtml(); ?>">
-		<table class="list_table">
-			<tbody>
-				<tr>
-					<td class="descriptionbox">
-						<?php echo I18N::translate('Individual'); ?>
-					</td>
-					<td class="optionbox">
-						<input class="pedigree_form" data-autocomplete-type="INDI" type="text" id="rootid" name="rootid" size="3" value="<?php echo $controller->root->getXref(); ?>">
-						<?php echo FunctionsPrint::printFindIndividualLink('rootid'); ?>
-					</td>
-					<td rowspan="3" class="descriptionbox">
-						<?php echo I18N::translate('Layout'); ?>
-					</td>
-					<td rowspan="3" class="optionbox">
-						<input type="radio" name="chart_style" value="0" <?php echo $controller->chart_style == 0 ? 'checked' : ''; ?>>
-						<?php echo  I18N::translate('List'); ?>
-						<br>
-						<input type="radio" name="chart_style" value="1" <?php echo $controller->chart_style == 1 ? 'checked' : ''; ?>>
-						<?php echo I18N::translate('Booklet'); ?>
-						<br>
-						<input type="radio" name="chart_style" value="2" <?php echo $controller->chart_style == 2 ? 'checked' : ''; ?>>
-						<?php echo I18N::translate('Individuals'); ?>
-						<br>
-						<input type="radio" name="chart_style" value="3" <?php echo $controller->chart_style == 3 ? 'checked' : ''; ?>>
-						<?php echo I18N::translate('Families'); ?>
-					</td>
-					<td rowspan="3" class="topbottombar">
-						<input type="submit" value="<?php echo /* I18N: A button label. */ I18N::translate('view'); ?>">
-					</td>
-				</tr>
-				<tr>
-					<td class="descriptionbox">
-						<?php echo I18N::translate('Generations'); ?>
-					</td>
-					<td class="optionbox">
-						<?php echo FunctionsEdit::editFieldInteger('generations', $controller->generations, 2, $WT_TREE->getPreference('MAX_DESCENDANCY_GENERATIONS')); ?>
-					</td>
-				</tr>
-				<tr>
-					<td class="descriptionbox">
-						<?php echo I18N::translate('Show details'); ?>
-					</td>
-					<td class="optionbox">
-						<?php echo FunctionsEdit::twoStateCheckbox('show_full', $controller->showFull()); ?>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</form>
+
+<h2><?= $controller->getPageTitle() ?></h2>
+<form>
+	<input type="hidden" name="ged" value="<?= $WT_TREE->getNameHtml() ?>">
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="rootid">
+			<?= I18N::translate('Individual') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= FunctionsEdit::formControlIndividual($controller->root, ['id' => 'rootid', 'name' => 'rootid']) ?>
+		</div>
+	</div>
+
+	<div class="row form-group">
+		<label class="col-sm-3 col-form-label" for="generations">
+			<?= I18N::translate('Generations') ?>
+		</label>
+		<div class="col-sm-9">
+			<?= Bootstrap4::select(FunctionsEdit::numericOptions(range(2, $WT_TREE->getPreference('MAX_DESCENDANCY_GENERATIONS'))), $controller->generations), ['id' => 'generations', 'name' => 'generations'] ?>
+		</div>
+	</div>
+
+	<fieldset class="row form-group">
+		<legend class="col-sm-3 col-form-legend">
+			<?= I18N::translate('Layout') ?>
+		</legend>
+		<div class="col-sm-9">
+			<?= Bootstrap4::radioButtons('chart_style', ['0' => I18N::translate('List'), '1' => I18N::translate('Booklet'), '2' => I18N::translate('Individuals'), '3' => I18N::translate('Families')], $controller->chart_style, true, ['onclick' => 'statusDisable("show_cousins");']) ?>
+		</div>
+	</fieldset>
+
+	<div class="row form-group">
+		<div class="col-sm-9 offset-sm-3">
+			<input class="btn btn-primary" type="submit" value="<?= /* I18N: A button label. */ I18N::translate('view') ?>">
+		</div>
+	</div>
+</form>
 
 <?php
 if ($controller->error_message) {
@@ -117,5 +96,3 @@ if ($controller->error_message) {
 		break;
 	}
 }
-?>
-</div>

@@ -1,7 +1,7 @@
 <?php
 /**
  * webtrees: online genealogy
- * Copyright (C) 2016 webtrees development team
+ * Copyright (C) 2017 webtrees development team
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,14 +15,7 @@
  */
 namespace Fisharebest\Webtrees;
 
-/**
- * Defined in session.php
- *
- * @global Tree $WT_TREE
- */
-global $WT_TREE;
-
-use Fisharebest\Webtrees\Controller\SimpleController;
+use Fisharebest\Webtrees\Controller\PageController;
 use Fisharebest\Webtrees\Functions\Functions;
 use Fisharebest\Webtrees\Functions\FunctionsDb;
 use Fisharebest\Webtrees\Functions\FunctionsEdit;
@@ -30,8 +23,10 @@ use Fisharebest\Webtrees\Functions\FunctionsImport;
 use Fisharebest\Webtrees\Functions\FunctionsPrint;
 use Fisharebest\Webtrees\Query\QueryMedia;
 
-define('WT_SCRIPT_NAME', 'addmedia.php');
-require './includes/session.php';
+/** @global Tree $WT_TREE */
+global $WT_TREE;
+
+require 'app/bootstrap.php';
 
 $NO_UPDATE_CHAN  = $WT_TREE->getPreference('NO_UPDATE_CHAN');
 $MEDIA_DIRECTORY = $WT_TREE->getPreference('MEDIA_DIRECTORY');
@@ -47,10 +42,8 @@ $glevels     = Filter::postArray('glevels', '[0-9]');
 $folder      = Filter::post('folder');
 $update_CHAN = !Filter::postBool('preserve_last_changed');
 
-$controller = new SimpleController;
+$controller = new PageController;
 $controller
-	->addExternalJavascript(WT_AUTOCOMPLETE_JS_URL)
-	->addInlineJavascript('autocomplete();')
 	->restrictAccess(Auth::isMember($WT_TREE));
 
 $disp  = true;
@@ -223,7 +216,7 @@ case 'create': // Save the information from the “showcreateform” action
 	if ($linktoid) {
 		$record = GedcomRecord::getInstance($linktoid, $WT_TREE);
 		$record->createFact('1 OBJE @' . $new_media->getXref() . '@', true);
-		Log::addEditLog('Media ID ' . $new_media->getXref() . " successfully added to $linktoid.");
+		Log::addEditLog('Media ID ' . $new_media->getXref() . ' successfully added to ' . $linktoid);
 		$controller->addInlineJavascript('closePopupAndReloadParent();');
 	} else {
 		Log::addEditLog('Media ID ' . $new_media->getXref() . ' successfully added.');
@@ -375,7 +368,7 @@ case 'update': // Save the information from the “editmedia” action
 	$text    = array_merge([$newFilename], $text);
 
 	$record = GedcomRecord::getInstance($pid, $WT_TREE);
-	$newrec = "0 @$pid@ OBJE\n";
+	$newrec = '0 @' . $pid . "@ OBJE\n";
 	$newrec = FunctionsEdit::handleUpdates($newrec);
 	$record->updateRecord($newrec, $update_CHAN);
 
@@ -388,7 +381,7 @@ case 'update': // Save the information from the “editmedia” action
 	if ($pid && $linktoid) {
 		$record = GedcomRecord::getInstance($linktoid, $WT_TREE);
 		$record->createFact('1 OBJE @' . $pid . '@', true);
-		Log::addEditLog('Media ID ' . $pid . " successfully added to $linktoid.");
+		Log::addEditLog('Media ID ' . $pid . ' successfully added to ' . $linktoid);
 	}
 	$controller->pageHeader();
 	if ($messages) {
@@ -428,9 +421,6 @@ if (!$linktoid && $action == 'create') {
 	echo '<tr><td class="descriptionbox wrap width25">';
 	echo I18N::translate('Enter an individual, family, or source ID');
 	echo '</td><td class="optionbox wrap"><input type="text" data-autocomplete-type="IFS" name="linktoid" id="linktoid" size="6" value="">';
-	echo ' ', FunctionsPrint::printFindIndividualLink('linktoid');
-	echo ' ', FunctionsPrint::printFindFamilyLink('linktoid');
-	echo ' ', FunctionsPrint::printFindSourceLink('linktoid');
 	echo '<p class="small text-muted">', I18N::translate('Enter or search for the ID of the individual, family, or source to which this media object should be linked.'), '</p></td></tr>';
 }
 
@@ -464,10 +454,10 @@ if ($gedfile == 'FILE') {
 
 // Filename on server
 $isExternal = Functions::isFileExternal($gedfile);
-if ($gedfile == 'FILE') {
+if ($gedfile === 'FILE') {
 	if (Auth::isManager($WT_TREE)) {
 		FunctionsEdit::addSimpleTag(
-			"1 $gedfile",
+			'1 FILE',
 			'',
 			I18N::translate('Filename on server'),
 			'<p class="small text-muted">' . I18N::translate('Do not change to keep original filename.') . '<br>' . I18N::translate('You may enter a URL, beginning with “http://”.') . '</p>'
@@ -696,7 +686,7 @@ if (!empty($gedrec)) {
 }
 if (Auth::isAdmin() && $action === 'update') {
 	echo '<tr><td class="descriptionbox wrap width25">';
-	echo GedcomTag::getLabel('CHAN'), '</td><td class="optionbox wrap">';
+	echo I18N::translate('Last change'), '</td><td class="optionbox wrap">';
 	if ($NO_UPDATE_CHAN) {
 		echo '<input type="checkbox" checked name="preserve_last_changed">';
 	} else {
@@ -712,8 +702,8 @@ FunctionsEdit::printAddLayer('SHARED_NOTE', 1);
 FunctionsEdit::printAddLayer('RESN', 1);
 ?>
 		<p id="save-cancel">
-			<input type="submit" class="save" value="<?php echo I18N::translate('save'); ?>">
-			<input type="button" class="cancel" value="<?php echo I18N::translate('close'); ?>" onclick="window.close();">
+			<input type="submit" class="save" value="<?= I18N::translate('save') ?>">
+			<a class="btn btn-link" href="<?= $media->getHtmlUrl() ?>"><?= I18N::translate('cancel') ?></a>
 		</p>
 	</form>
 </div>
