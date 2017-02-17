@@ -42,21 +42,6 @@ class ColorsTheme extends CloudsTheme implements ThemeInterface {
 	}
 
 	/**
-	 * Add markup to the secondary menu.
-	 *
-	 * @return string
-	 */
-	protected function formatSecondaryMenu() {
-		return
-			'<ul class="nav wt-secondary-menu">' .
-			implode('', array_map(function(Menu $menu) { return $this->formatSecondaryMenuItem($menu); }, $this->secondaryMenu())) .
-			'<li>' .
-			$this->formQuickSearch() .
-			'</li>' .
-			'</ul>';
-	}
-
-	/**
 	 * Create resources for the colors theme.
 	 */
 	public function hookAfterInit() {

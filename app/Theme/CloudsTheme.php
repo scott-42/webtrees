@@ -53,17 +53,6 @@ class CloudsTheme extends AbstractTheme implements ThemeInterface {
 	}
 
 	/**
-	 * Create a search field and submit button for the quick search form in the header.
-	 *
-	 * @return string
-	 */
-	protected function formQuickSearchFields() {
-		return
-			'<input type="search" name="query" size="15" placeholder="' . I18N::translate('Search') . '">' .
-			'<input class="search-icon" type="image" src="' . $this->assetUrl() . 'images/go.png" alt="' . I18N::translate('Search') . '" title="' . I18N::translate('Search') . '">';
-	}
-
-	/**
 	 * Allow themes to add extra scripts to the page footer.
 	 *
 	 * @return string
@@ -106,31 +95,6 @@ class CloudsTheme extends AbstractTheme implements ThemeInterface {
 		} else {
 			return parent::parameter($parameter_name);
 		}
-	}
-
-	/**
-	 * Create the primary menu.
-	 *
-	 * @param Menu[] $menus
-	 *
-	 * @return string
-	 */
-	protected function primaryMenuContent(array $menus) {
-		$html = '';
-
-		foreach ($menus as $menu) {
-			// Create an inert menu - to use as a label
-			$tmp = new Menu($menu->getLabel(), '');
-
-			// Insert the label into the submenu
-			$submenus = $menu->getSubmenus();
-			array_unshift($submenus, $tmp);
-			$menu->setSubmenus($submenus);
-
-			$html .= $menu->getMenuAsList();
-		}
-
-		return $html;
 	}
 
 	/**
